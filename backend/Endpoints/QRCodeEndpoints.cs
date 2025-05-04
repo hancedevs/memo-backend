@@ -17,10 +17,12 @@ namespace backend.Endpoints
         {
             app.MapGet("/api/qrcodes/generate", async (Guid weddingId, MemoDbContext db, IWebHostEnvironment env) =>
             {
+                var domain = Environment.GetEnvironmentVariable("Frontend_Url") ?? "http://localhost:4300";
                 var story = await db.Weddings.Where(w => w.Id == weddingId).FirstOrDefaultAsync();
                 if (story == null) return Results.NotFound();
-
-                var domain = app.Configuration["Domain"];
+                var existingqrCode = await db.QRCodes.Where(q => q.WeddingId == weddingId).FirstOrDefaultAsync();
+                if (existingqrCode != null) return Results.Ok(new { url = existingqrCode.Url, assetUrl = existingqrCode.AssetUrl });
+                
                 var url = $"{domain}/story/{weddingId}";
                 var qrGenerator = new QRCodeGenerator();
                 var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
