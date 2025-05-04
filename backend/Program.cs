@@ -12,12 +12,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+ string DB_Host=Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+string DB_User = Environment.GetEnvironmentVariable("DB_USER") ?? "root";
+string DB_Password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "root";
+string DB_Name = Environment.GetEnvironmentVariable("DB_NAME") ?? "memos";
+string DB_Port = Environment.GetEnvironmentVariable("DB_PORT") ?? "3306";
+string connectionString = $"Server={DB_Host};Database={DB_Name};User={DB_User};Password={DB_Password};Port={DB_Port};";
 builder.Services.AddDbContext<MemoDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseMySQL(connectionString));
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddScoped<QRCodeService>();
 builder.Services.AddScoped<AuthService>();
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -32,6 +37,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
@@ -40,6 +46,22 @@ builder.Services.AddCors(options =>
 });
 var app = builder.Build();
 app.UseCors("AllowAllOrigins");
+// Ensure database is created and migrations are applied
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<MemoDbContext>();
+    try
+    {
+        // Create database if it doesn't exist and apply migrations
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        // Log error (use your logging mechanism)
+        Console.WriteLine($"Error applying migrations: {ex.Message}");
+        throw;
+    }
+}
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

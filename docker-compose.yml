@@ -2,11 +2,34 @@ services:
   backend:
     image: ${DOCKER_REGISTRY-}backend
     build:
-      context: backend
+      context: ./backend
       dockerfile: Dockerfile
     ports:
-         - "4001:80"
+         - "4001:8080"
     environment:
-         - ASPNETCORE_ENVIRONMENT=Production
+         - ASPNETCORE_ENVIRONMENT=Development
+         - DB_HOST=mysql
+         - DB_PORT=3306
+         - DB_NAME=memos
+         - DB_USER=memos
+         - DB_PASSWORD=p@55w0rd
     volumes:
-         - ./media:/app/wwwroot/qrcodes
+         - ./media:/app/wwwroot/qrcode
+    depends_on:
+         - mysql
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1qazXSW@
+      MYSQL_DATABASE: memos
+      MYSQL_USER: memos
+      MYSQL_PASSWORD: p@55w0rd
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    restart: unless-stopped
+volumes:
+      mysql-data:
+        driver: local
