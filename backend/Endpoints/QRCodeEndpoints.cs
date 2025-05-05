@@ -17,7 +17,7 @@ namespace backend.Endpoints
         {
             app.MapGet("/api/qrcodes/generate", async (Guid weddingId, MemoDbContext db, IWebHostEnvironment env) =>
             {
-                var domain = Environment.GetEnvironmentVariable("Frontend_Url") ?? "http://localhost:4300";
+                var domain = Environment.GetEnvironmentVariable("Frontend_Url") ?? "http://memo.plate.et";
                 var story = await db.Weddings.Where(w => w.Id == weddingId).FirstOrDefaultAsync();
                 if (story == null) return Results.NotFound();
                 var existingqrCode = await db.QRCodes.Where(q => q.WeddingId == weddingId).FirstOrDefaultAsync();

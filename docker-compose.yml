@@ -13,7 +13,7 @@ services:
          - DB_NAME=memos
          - DB_USER=memos
          - DB_PASSWORD=p@55w0rd
-         - Frontend_Url=http://localhost:4200
+         - Frontend_Url=http://memo.plate.et
     volumes:
          - ./media:/app/wwwroot/qrcode
     depends_on:
