@@ -15,7 +15,7 @@ namespace backend.Endpoints
     {
         app.MapPost("/api/media/upload",async ([FromForm] MediaFileDto file, MemoDbContext db,IWebHostEnvironment env) =>
         {
-            if (file.File.Length > 50 * 1024 * 1024) // 50MB limit
+            if (file.File.Length > 1 * 1024 * 1024) // 50MB limit
                 return Results.BadRequest("File too large.");
 
             var uploadsDir = Path.Combine(env.WebRootPath, "media");
@@ -40,7 +40,7 @@ namespace backend.Endpoints
         }).DisableAntiforgery();
             app.MapPost("/api/media/upload/coverImage",async ([FromForm] MediaFileDto file,MemoDbContext db, IWebHostEnvironment env) =>
         {
-            if (file.File.Length > 50 * 1024 * 1024) // 50MB limit
+            if (file.File.Length > 1 * 1024 * 1024) // 50MB limit
                 return Results.BadRequest("File too large.");
 
             var uploadsDir = Path.Combine(env.WebRootPath, "media");
