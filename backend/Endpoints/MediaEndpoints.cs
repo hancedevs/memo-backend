@@ -38,6 +38,84 @@ namespace backend.Endpoints
             await db.SaveChangesAsync();
             return Results.Ok(new { Url = fileUrl });
         }).DisableAntiforgery();
+
+            app.MapPut("/api/media/update/coverImage", async ([FromForm] MediaFileDto file, MemoDbContext db, IWebHostEnvironment env) =>
+            {
+                if (file.File.Length > 1 * 1024 * 1024) // 50MB limit  
+                    return Results.BadRequest("File too large.");
+
+                var uploadsDir = Path.Combine(env.WebRootPath, "media");
+                Directory.CreateDirectory(uploadsDir);
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.File.FileName)}";
+                var filePath = Path.Combine(uploadsDir, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.File.CopyToAsync(stream);
+                }
+
+                app.MapPut("/api/media/update/coverImage", async ([FromForm] MediaFileDto file, MemoDbContext db, IWebHostEnvironment env) =>
+                {
+                    if (file.File.Length > 1 * 1024 * 1024) // 50MB limit  
+                        return Results.BadRequest("File too large.");
+
+                    var uploadsDir = Path.Combine(env.WebRootPath, "media");
+                    Directory.CreateDirectory(uploadsDir);
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.File.FileName)}";
+                    var filePath = Path.Combine(uploadsDir, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.File.CopyToAsync(stream);
+                    }
+                    var fileUrl = $"/media/{fileName}";
+
+                    var existingCoverImage = await db.Media.FirstOrDefaultAsync(m => m.WeddingId == file.WeddingId && m.IsCoverImage);
+                    if (existingCoverImage != null)
+                    {
+                        existingCoverImage.IsCoverImage = false;
+
+                        // Remove the old image file from the server
+                        var oldFilePath = Path.Combine(env.WebRootPath, existingCoverImage.Url.TrimStart('/'));
+                        if (File.Exists(oldFilePath))
+                        {
+                            File.Delete(oldFilePath);
+                        }
+                    }
+
+                    var newCoverImage = new Media
+                    {
+                        WeddingId = file.WeddingId,
+                        Url = fileUrl,
+                        Type = file.File.ContentType,
+                        IsCoverImage = true
+                    };
+
+                    await db.Media.AddAsync(newCoverImage);
+                    await db.SaveChangesAsync();
+
+                    return Results.Ok(new { Url = fileUrl });
+                }).DisableAntiforgery();
+                var fileUrl = $"/media/{fileName}";
+
+                var existingCoverImage = await db.Media.FirstOrDefaultAsync(m => m.WeddingId == file.WeddingId && m.IsCoverImage);
+                if (existingCoverImage != null)
+                {
+                    existingCoverImage.IsCoverImage = false;
+                }
+
+                var newCoverImage = new Media
+                {
+                    WeddingId = file.WeddingId,
+                    Url = fileUrl,
+                    Type = file.File.ContentType,
+                    IsCoverImage = true
+                };
+
+                await db.Media.AddAsync(newCoverImage);
+                await db.SaveChangesAsync();
+
+                return Results.Ok(new { Url = fileUrl });
+            }).DisableAntiforgery();
+
             app.MapPost("/api/media/upload/coverImage",async ([FromForm] MediaFileDto file,MemoDbContext db, IWebHostEnvironment env) =>
         {
             if (file.File.Length > 1 * 1024 * 1024) // 50MB limit

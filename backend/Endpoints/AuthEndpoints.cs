@@ -12,11 +12,11 @@ namespace backend.Endpoints
     {
         public static void MapAuthEndpoints(this WebApplication app)
         {
-           app.MapPost("/api/auth/login", async ([FromBody] LoginRequest request, AuthService authService) =>
-        {
-            var token = await authService.Login(request.Email, request.Password);
-            return token != null ? Results.Ok(new { Token = token }) : Results.BadRequest("Invalid email or password.");
-        });
+        //   app.MapPost("/api/auth/login", async ([FromBody] LoginRequest request, AuthService authService) =>
+        //{
+        //    var token = await authService.Login(request.Email, request.Password);
+        //    return token != null ? Results.Ok(new { Token = token }) : Results.BadRequest("Invalid email or password.");
+        //});
         }
     }
 }
