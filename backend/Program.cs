@@ -63,7 +63,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
-app.MapAuthEndpoints();
+//app.MapAuthEndpoints();
 app.MapWeddingEndpoints();
 app.MapMediaEndpoints();
 app.MapQRCodeEndpoints();
