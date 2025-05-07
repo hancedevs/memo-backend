@@ -18,6 +18,7 @@ string DB_Password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "root"
 string DB_Name = Environment.GetEnvironmentVariable("DB_NAME") ?? "memos";
 string DB_Port = Environment.GetEnvironmentVariable("DB_PORT") ?? "3306";
 string connectionString = $"Server={DB_Host};Database={DB_Name};User={DB_User};Password={DB_Password};Port={DB_Port};";
+Console.WriteLine($"Connection String: {connectionString}");
 builder.Services.AddDbContext<MemoDbContext>(options =>
     options.UseMySQL(connectionString));
 builder.Services.AddScoped<FileStorageService>();
