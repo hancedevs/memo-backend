@@ -46,7 +46,6 @@ public static class WeddingEndpoints
                     BrideVows = story.BrideVows,
                     GroomVows = story.GroomVows,
                     Proposal = story.Proposal,
-                    HowWeMet = story.HowWeMet,
                     ThankYouMessage = story.ThankYouMessage,
                     Gallery = gallery,
                     QrCode = qrcode,
@@ -74,7 +73,6 @@ public static class WeddingEndpoints
                 BrideName = story.BrideName,
                 ThankYouMessage = story.ThankYouMessage,
                 Proposal = story.Proposal,
-                HowWeMet = story.HowWeMet,
                 GroomName = story.GroomName,
                 GroomVows = story.GroomVows,
                 BrideVows = story.BrideVows,
@@ -120,7 +118,6 @@ public static class WeddingEndpoints
                 BrideVows = story.BrideVows,
                 GroomVows = story.GroomVows,
                 Proposal = story.Proposal,
-                HowWeMet = story.HowWeMet,
                 ThankYouMessage = story.ThankYouMessage,
                 Gallery =gallery,
                 QrCode = qrcode,
@@ -146,7 +143,6 @@ public static class WeddingEndpoints
             existingStory.GroomVows = updatedStory.GroomVows;
             existingStory.ThankYouMessage = updatedStory.ThankYouMessage;
             existingStory.Proposal = updatedStory.Proposal;
-            existingStory.HowWeMet = updatedStory.HowWeMet;
 
             db.Weddings.Update(existingStory);
             await db.SaveChangesAsync();
