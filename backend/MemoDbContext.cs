@@ -14,8 +14,13 @@ namespace backend
     public DbSet<Media> Media { get; set; }
     public DbSet<WQRCode> QRCodes { get; set; }
     public DbSet<GuestMessage> GuestMessages { get; set; }
+    public DbSet<Proposal> Proposals { get; set; }
+        public DbSet<HowWeMet> HowWeMetStories { get; set; }
+        public DbSet<HowWeMetMedia> HowWeMetMedias { get; set; } // Add this line to include HowWeMetMedia in the context
+        public DbSet<ProposalMedia> ProposalMedias { get; set; } // Add this line to include ProposalMedia in the context
 
-    public MemoDbContext(DbContextOptions<MemoDbContext> options) : base(options) { }
+
+        public MemoDbContext(DbContextOptions<MemoDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +46,7 @@ namespace backend
             .WithMany(w => w.GuestMessages)
             .HasForeignKey(q => q.WeddingId);
             
+
         }
 }
 }

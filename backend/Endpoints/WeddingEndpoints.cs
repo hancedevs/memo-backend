@@ -61,7 +61,7 @@ public static class WeddingEndpoints
             }
             
             return Results.Ok(stories);
-        });
+        }).WithName("Wedding").WithTags("Wedding").WithDescription("This is to list weddings");
 
         app.MapPost("/api/weddings", async ([FromBody] WeddingCreateDto story, MemoDbContext db, HttpContext context, FileStorageService fileStorageService) =>
         {
@@ -82,7 +82,9 @@ public static class WeddingEndpoints
             await db.SaveChangesAsync();
             
             return Results.Ok(weddingStory);
-        });
+        })
+            .WithTags("Wedding")
+        .WithDescription("This is api to add wedding").WithName("AddWedding");
 
         app.MapGet("/api/weddings/{id}", async (Guid id, MemoDbContext db) =>
         {
@@ -130,7 +132,7 @@ public static class WeddingEndpoints
                 } :new MediaFileResponseDto(),
             };
             return Results.Ok(response);
-        });
+        }).WithName("GetWedding").WithTags("Wedding").WithDescription("This is api to get wedding by id");
         app.MapPut("/api/weddings/{id}", async (Guid id, [FromBody] WeddingStory updatedStory, MemoDbContext db, HttpContext context) =>
         {
             updatedStory.Id = id;
@@ -147,13 +149,67 @@ public static class WeddingEndpoints
             db.Weddings.Update(existingStory);
             await db.SaveChangesAsync();
             return Results.Ok(existingStory);
-        });
-        app.MapPost("/api/weddings/guestmessages", async ([FromBody] GuestMessage message, MemoDbContext db) =>
+        }).WithName("updatewedding").WithDescription("This api is to update the wedding story").WithTags("Wedding");
+
+        app.MapGet("/api/weddings/planner/{id}", async (Guid id, MemoDbContext db) =>
+        {
+            var weddings = await db.Weddings
+                .Where(w => w.PlannerId == id)
+                .ToListAsync();
+            return Results.Ok(weddings);
+        }).WithName("GetWeddingByPlannerId").WithTags("Wedding").WithDescription("This is api to get wedding by planner id");
+
+
+        app.MapDelete("/api/weddings/{id}", async (Guid id, MemoDbContext db) =>
+        {
+            var wedding = await db.Weddings.FindAsync(id);
+            if (wedding == null) return Results.NotFound();
+            db.Weddings.Remove(wedding);
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        }).WithName("DeleteWedding").WithTags("Wedding").WithDescription("This is api to delete wedding by id");
+
+        app.MapGet("/api/weddings/qr/{id}", async (Guid id, MemoDbContext db) =>
+        {
+            var qrcode = await db.QRCodes.FirstOrDefaultAsync(q => q.WeddingId == id);
+            if (qrcode == null) return Results.NotFound();
+            return Results.Ok(qrcode);
+        }).WithName("GetWeddingQRCode")
+        .WithDescription("This is api to get wedding qr code").WithTags("QR Code");
+
+        app.MapPost("/api/guestmessages", async ([FromBody] GuestMessage message, MemoDbContext db) =>
         {
             db.GuestMessages.Add(message);
             await db.SaveChangesAsync();
             return Results.Ok(message);
-        });
+        }).WithName("AddGuestMessage")
+        .WithDescription("This is api to add blessings from guests").WithTags("Blessing");
+
+       app.MapGet("/api/guestmessages/{id}", async (Guid id, MemoDbContext db) =>
+        {
+            var messages = await db.GuestMessages
+                .Where(m => m.WeddingId == id)
+                .ToListAsync();
+            return Results.Ok(messages);
+        }).WithName("GetGuestMessages")
+        .WithDescription("This is api to get blessings from guests by wedding id").WithTags("Blessing");
+       
+        app.MapDelete("/api/guestmessages/{id}", async (Guid id, MemoDbContext db) =>
+        {
+            var message = await db.GuestMessages.FindAsync(id);
+            if (message == null) return Results.NotFound();
+            db.GuestMessages.Remove(message);
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        }).WithName("DeleteGuestMessage").WithTags("Blessing").WithDescription("This is api to delete blessing by id");
+
+        app.MapPost("/api/proposal", async ( [FromBody] Proposal proposal, MemoDbContext db) =>
+        {
+            var result = await db.Proposals.AddAsync(proposal);
+            await db.SaveChangesAsync();
+            return Results.Ok(result.Entity);
+        }).WithName("AddProposal").WithTags("Proposal").WithDescription("This is api to add proposal");
+
     }
 
     private static RouteHandlerBuilder WithResponseCache(this RouteHandlerBuilder builder, int duration)
