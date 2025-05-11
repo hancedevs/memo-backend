@@ -7,6 +7,7 @@ using backend.Endpoints;
 using backend.Services;
 using backend;
 using Microsoft.OpenApi.Models;
+using backend.Configs;
 
 var builder = WebApplication.CreateBuilder(args);
 Console.WriteLine("Starting application...");
@@ -36,6 +37,29 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAllOrigins",
         builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
+// Bind JWT settings
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+
+// Add authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+// Add authorization
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 var app = builder.Build();
 app.UseCors("AllowAllOrigins");
 // Ensure database is created and migrations are applied
@@ -59,14 +83,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseStaticFiles();
 app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
-//app.MapAuthEndpoints();
+app.MapAuthEndpoints();
 app.MapWeddingEndpoints();
 app.MapMediaEndpoints();
-app.MapQRCodeEndpoints();
+//app.MapQRCodeEndpoints();
 app.MapPlannerEndpoints();
+app.MapHowWeMetEndpoints();
+app.MapProposalEndpoints();
+app.MapGuestEndpoints();
 
 app.Run();

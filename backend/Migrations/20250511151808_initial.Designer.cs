@@ -11,8 +11,8 @@ using backend;
 namespace backend.Migrations
 {
     [DbContext(typeof(MemoDbContext))]
-    [Migration("20250509093130_intial")]
-    partial class intial
+    [Migration("20250511151808_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -75,7 +75,7 @@ namespace backend.Migrations
 
                     b.HasIndex("WeddingStoryId");
 
-                    b.ToTable("HowWeMet");
+                    b.ToTable("HowWeMetStories");
                 });
 
             modelBuilder.Entity("backend.Models.HowWeMetMedia", b =>
@@ -87,27 +87,11 @@ namespace backend.Migrations
                     b.Property<Guid>("HowWeMetId")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("MediaDescription")
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("MediaName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("MediaSize")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("MediaType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("MediaTypeUrl")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("MediaUrl")
+                    b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -115,7 +99,7 @@ namespace backend.Migrations
 
                     b.HasIndex("HowWeMetId");
 
-                    b.ToTable("HowWeMetMedia");
+                    b.ToTable("HowWeMetMedias");
                 });
 
             modelBuilder.Entity("backend.Models.Media", b =>
@@ -155,11 +139,15 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Logo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -168,21 +156,42 @@ namespace backend.Migrations
                     b.ToTable("Planners");
                 });
 
+            modelBuilder.Entity("backend.Models.PlannerProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("PlannerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlannerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PlannerProfiles");
+                });
+
             modelBuilder.Entity("backend.Models.Proposal", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("ProposalDate")
+                    b.Property<string>("Date")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ProposalLocation")
+                    b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ProposalStory")
+                    b.Property<string>("Story")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -193,7 +202,7 @@ namespace backend.Migrations
 
                     b.HasIndex("WeddingStoryId");
 
-                    b.ToTable("Proposal");
+                    b.ToTable("Proposals");
                 });
 
             modelBuilder.Entity("backend.Models.ProposalMedia", b =>
@@ -202,34 +211,53 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("MediaDescription")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("MediaName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("MediaType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("MediaTypeUrl")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("MediaUrl")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<Guid>("ProposalId")
                         .HasColumnType("char(36)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProposalId");
 
-                    b.ToTable("ProposalMedia");
+                    b.ToTable("ProposalMedias");
+                });
+
+            modelBuilder.Entity("backend.Models.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("backend.Models.WQRCode", b =>
@@ -364,6 +392,25 @@ namespace backend.Migrations
                     b.Navigation("Wedding");
                 });
 
+            modelBuilder.Entity("backend.Models.PlannerProfile", b =>
+                {
+                    b.HasOne("backend.Models.Planner", "Planner")
+                        .WithMany("PlannerProfiles")
+                        .HasForeignKey("PlannerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.User", "User")
+                        .WithMany("Planners")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Planner");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("backend.Models.Proposal", b =>
                 {
                     b.HasOne("backend.Models.WeddingStory", "WeddingStory")
@@ -377,11 +424,13 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.ProposalMedia", b =>
                 {
-                    b.HasOne("backend.Models.Proposal", null)
+                    b.HasOne("backend.Models.Proposal", "Proposal")
                         .WithMany("Media")
                         .HasForeignKey("ProposalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Proposal");
                 });
 
             modelBuilder.Entity("backend.Models.WQRCode", b =>
@@ -413,12 +462,19 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Planner", b =>
                 {
+                    b.Navigation("PlannerProfiles");
+
                     b.Navigation("Weddings");
                 });
 
             modelBuilder.Entity("backend.Models.Proposal", b =>
                 {
                     b.Navigation("Media");
+                });
+
+            modelBuilder.Entity("backend.Models.User", b =>
+                {
+                    b.Navigation("Planners");
                 });
 
             modelBuilder.Entity("backend.Models.WeddingStory", b =>

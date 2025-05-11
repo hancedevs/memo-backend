@@ -8,6 +8,7 @@ using BCrypt.Net;
 using backend.Dto;
 using backend.Models;
 using backend;
+using BCrypt.Net;
 
 public class AuthService
 {
@@ -20,43 +21,30 @@ public class AuthService
         _configuration = configuration;
     }
 
-    //public async Task<string> Login(string email, string password)
-    //{
-    //    var planner = await _context.Planners.FirstOrDefaultAsync(p => p.Email == email);
-    //    if (planner == null || !BCrypt.Net.BCrypt.Verify(password, planner.Password))
-    //        return null;
-
-    //    var tokenHandler = new JwtSecurityTokenHandler();
-    //    var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
-    //    var tokenDescriptor = new SecurityTokenDescriptor
-    //    {
-    //        Subject = new ClaimsIdentity(new[]
-    //        {
-    //            new Claim(ClaimTypes.NameIdentifier, planner.Id.ToString()),
-    //            new Claim(ClaimTypes.Email, planner.Email)
-    //        }),
-    //        Expires = DateTime.UtcNow.AddHours(1),
-    //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-    //        Issuer = _configuration["Jwt:Issuer"],
-    //        Audience = _configuration["Jwt:Audience"]
-    //    };
-    //    var token = tokenHandler.CreateToken(tokenDescriptor);
-    //    return tokenHandler.WriteToken(token);
-    //}
-
-    public async Task<Guid> Register(PlannerCreateDto dto)
+    public async Task<User> Authenticate(string username, string password)
     {
-        if (await _context.Planners.AnyAsync(p => p.Email == dto.Email))
+        var user = await _context.Users.SingleOrDefaultAsync(x => x.Username == username);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            return null;
+
+        return user;
+    }
+
+    public async Task<Guid> Register(RegisterDto dto)
+    {
+        if (await _context.Users.AnyAsync(p => p.Email == dto.Email))
             throw new InvalidOperationException("Email already exists.");
 
-        var planner = new Planner
+        var planner = new User
         {
             Name = dto.Name,
             Email = dto.Email,
-            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Username= dto.Username,
+            Role=dto.Role,
         };
 
-        _context.Planners.Add(planner);
+        _context.Users.Add(planner);
         await _context.SaveChangesAsync();
         return planner.Id;
     }

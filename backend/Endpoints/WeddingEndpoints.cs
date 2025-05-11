@@ -15,7 +15,7 @@ public static class WeddingEndpoints
     {
         app.MapGet("/api/weddings", async (MemoDbContext db, HttpContext context) =>
         {
-            
+
             var weddings = await db.Weddings
                 .Include(w => w.Gallery)
                 .Include(w => w.QRCode)
@@ -59,14 +59,14 @@ public static class WeddingEndpoints
                 };
                 stories.Add(response);
             }
-            
+
             return Results.Ok(stories);
         }).WithName("Wedding").WithTags("Wedding").WithDescription("This is to list weddings");
 
         app.MapPost("/api/weddings", async ([FromBody] WeddingCreateDto story, MemoDbContext db, HttpContext context, FileStorageService fileStorageService) =>
         {
-            
-            if (string.IsNullOrWhiteSpace(story.BrideName) || string.IsNullOrWhiteSpace(story.GroomName)|| string.IsNullOrWhiteSpace(story.HowWeMet))
+
+            if (string.IsNullOrWhiteSpace(story.BrideName) || string.IsNullOrWhiteSpace(story.GroomName) || string.IsNullOrWhiteSpace(story.HowWeMet))
                 return Results.BadRequest("Couple name and How met are required.");
             var weddingStory = new WeddingStory
             {
@@ -80,7 +80,7 @@ public static class WeddingEndpoints
             };
             await db.Weddings.AddAsync(weddingStory);
             await db.SaveChangesAsync();
-            
+
             return Results.Ok(weddingStory);
         })
             .WithTags("Wedding")
@@ -88,32 +88,32 @@ public static class WeddingEndpoints
 
         app.MapGet("/api/weddings/{id}", async (Guid id, MemoDbContext db) =>
         {
-        var story = await db.Weddings
-        .Include(w => w.QRCode)
-        .Include(w => w.Gallery)
+            var story = await db.Weddings
+            .Include(w => w.QRCode)
+            .Include(w => w.Gallery)
 
-            .FirstOrDefaultAsync(w => w.Id == id);
+                .FirstOrDefaultAsync(w => w.Id == id);
 
-        if (story == null)
-        {
-            return Results.NotFound("Wedding story not found.");
-        }
-        var coimage = story.Gallery.FirstOrDefault(x => x.IsCoverImage);
-            var gallery = story.Gallery.Any()? story.Gallery.Where(x=>!x.IsCoverImage).Select(g => new MediaFileResponseDto
+            if (story == null)
+            {
+                return Results.NotFound("Wedding story not found.");
+            }
+            var coimage = story.Gallery.FirstOrDefault(x => x.IsCoverImage);
+            var gallery = story.Gallery.Any() ? story.Gallery.Where(x => !x.IsCoverImage).Select(g => new MediaFileResponseDto
             {
                 Id = g.Id,
                 Url = g.Url,
                 Type = g.Type,
                 IsCoverImage = g.IsCoverImage
-            }).ToList():new List<MediaFileResponseDto>();
-            var qrcode = story.QRCode!=null?new WQRCodeResponse
+            }).ToList() : new List<MediaFileResponseDto>();
+            var qrcode = story.QRCode != null ? new WQRCodeResponse
             {
                 Id = story.QRCode.Id,
                 Url = story.QRCode.Url,
                 AssetUrl = story.QRCode.AssetUrl,
                 Scans = story.QRCode.Scans
-            }:new WQRCodeResponse();
-            var response=new WeddingResponseDto
+            } : new WQRCodeResponse();
+            var response = new WeddingResponseDto
             {
                 BrideName = story.BrideName,
                 GroomName = story.GroomName,
@@ -121,15 +121,15 @@ public static class WeddingEndpoints
                 GroomVows = story.GroomVows,
                 Proposal = story.Proposal,
                 ThankYouMessage = story.ThankYouMessage,
-                Gallery =gallery,
+                Gallery = gallery,
                 QrCode = qrcode,
-                CoverImage = coimage!=null?new MediaFileResponseDto
+                CoverImage = coimage != null ? new MediaFileResponseDto
                 {
                     Id = coimage.Id,
                     Url = coimage.Url,
                     Type = coimage.Type,
                     IsCoverImage = coimage.IsCoverImage
-                } :new MediaFileResponseDto(),
+                } : new MediaFileResponseDto(),
             };
             return Results.Ok(response);
         }).WithName("GetWedding").WithTags("Wedding").WithDescription("This is api to get wedding by id");
@@ -177,38 +177,7 @@ public static class WeddingEndpoints
         }).WithName("GetWeddingQRCode")
         .WithDescription("This is api to get wedding qr code").WithTags("QR Code");
 
-        app.MapPost("/api/guestmessages", async ([FromBody] GuestMessage message, MemoDbContext db) =>
-        {
-            db.GuestMessages.Add(message);
-            await db.SaveChangesAsync();
-            return Results.Ok(message);
-        }).WithName("AddGuestMessage")
-        .WithDescription("This is api to add blessings from guests").WithTags("Blessing");
-
-       app.MapGet("/api/guestmessages/{id}", async (Guid id, MemoDbContext db) =>
-        {
-            var messages = await db.GuestMessages
-                .Where(m => m.WeddingId == id)
-                .ToListAsync();
-            return Results.Ok(messages);
-        }).WithName("GetGuestMessages")
-        .WithDescription("This is api to get blessings from guests by wedding id").WithTags("Blessing");
        
-        app.MapDelete("/api/guestmessages/{id}", async (Guid id, MemoDbContext db) =>
-        {
-            var message = await db.GuestMessages.FindAsync(id);
-            if (message == null) return Results.NotFound();
-            db.GuestMessages.Remove(message);
-            await db.SaveChangesAsync();
-            return Results.NoContent();
-        }).WithName("DeleteGuestMessage").WithTags("Blessing").WithDescription("This is api to delete blessing by id");
-
-        app.MapPost("/api/proposal", async ( [FromBody] Proposal proposal, MemoDbContext db) =>
-        {
-            var result = await db.Proposals.AddAsync(proposal);
-            await db.SaveChangesAsync();
-            return Results.Ok(result.Entity);
-        }).WithName("AddProposal").WithTags("Proposal").WithDescription("This is api to add proposal");
 
     }
 

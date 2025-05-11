@@ -12,8 +12,10 @@ namespace backend.Models
         public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; }
     public string Email { get; set; }
-    public string Password { get; set; }
+        public string Phone { get; set; }
+        public string Logo { get; set; }
     public List<WeddingStory> Weddings { get; set; }
+        public virtual List<PlannerProfile> PlannerProfiles { get; set; }
     }
 
 }

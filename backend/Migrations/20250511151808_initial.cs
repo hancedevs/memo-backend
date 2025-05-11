@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class intial : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,11 +21,29 @@ namespace backend.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false),
                     Name = table.Column<string>(type: "longtext", nullable: false),
                     Email = table.Column<string>(type: "longtext", nullable: false),
-                    Password = table.Column<string>(type: "longtext", nullable: false)
+                    Phone = table.Column<string>(type: "longtext", nullable: false),
+                    Logo = table.Column<string>(type: "longtext", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Planners", x => x.Id);
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
+                    Name = table.Column<string>(type: "longtext", nullable: false),
+                    Username = table.Column<string>(type: "longtext", nullable: false),
+                    Password = table.Column<string>(type: "longtext", nullable: false),
+                    Role = table.Column<string>(type: "longtext", nullable: false),
+                    Email = table.Column<string>(type: "longtext", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -60,6 +78,32 @@ namespace backend.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "PlannerProfiles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false),
+                    PlannerId = table.Column<Guid>(type: "char(36)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlannerProfiles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PlannerProfiles_Planners_PlannerId",
+                        column: x => x.PlannerId,
+                        principalTable: "Planners",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlannerProfiles_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "GuestMessages",
                 columns: table => new
                 {
@@ -82,7 +126,7 @@ namespace backend.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "HowWeMet",
+                name: "HowWeMetStories",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false),
@@ -93,9 +137,9 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HowWeMet", x => x.Id);
+                    table.PrimaryKey("PK_HowWeMetStories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_HowWeMet_Weddings_WeddingStoryId",
+                        name: "FK_HowWeMetStories_Weddings_WeddingStoryId",
                         column: x => x.WeddingStoryId,
                         principalTable: "Weddings",
                         principalColumn: "Id",
@@ -126,20 +170,20 @@ namespace backend.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Proposal",
+                name: "Proposals",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false),
                     WeddingStoryId = table.Column<Guid>(type: "char(36)", nullable: false),
-                    ProposalStory = table.Column<string>(type: "longtext", nullable: false),
-                    ProposalDate = table.Column<string>(type: "longtext", nullable: false),
-                    ProposalLocation = table.Column<string>(type: "longtext", nullable: false)
+                    Story = table.Column<string>(type: "longtext", nullable: false),
+                    Date = table.Column<string>(type: "longtext", nullable: false),
+                    Location = table.Column<string>(type: "longtext", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Proposal", x => x.Id);
+                    table.PrimaryKey("PK_Proposals", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Proposal_Weddings_WeddingStoryId",
+                        name: "FK_Proposals_Weddings_WeddingStoryId",
                         column: x => x.WeddingStoryId,
                         principalTable: "Weddings",
                         principalColumn: "Id",
@@ -170,49 +214,42 @@ namespace backend.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "HowWeMetMedia",
+                name: "HowWeMetMedias",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false),
                     HowWeMetId = table.Column<Guid>(type: "char(36)", nullable: false),
-                    MediaUrl = table.Column<string>(type: "longtext", nullable: false),
-                    MediaType = table.Column<string>(type: "longtext", nullable: false),
-                    MediaTypeUrl = table.Column<string>(type: "longtext", nullable: false),
-                    MediaName = table.Column<string>(type: "longtext", nullable: false),
-                    MediaDescription = table.Column<string>(type: "longtext", nullable: false),
-                    MediaSize = table.Column<string>(type: "longtext", nullable: false)
+                    Url = table.Column<string>(type: "longtext", nullable: false),
+                    Type = table.Column<string>(type: "longtext", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HowWeMetMedia", x => x.Id);
+                    table.PrimaryKey("PK_HowWeMetMedias", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_HowWeMetMedia_HowWeMet_HowWeMetId",
+                        name: "FK_HowWeMetMedias_HowWeMetStories_HowWeMetId",
                         column: x => x.HowWeMetId,
-                        principalTable: "HowWeMet",
+                        principalTable: "HowWeMetStories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ProposalMedia",
+                name: "ProposalMedias",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false),
                     ProposalId = table.Column<Guid>(type: "char(36)", nullable: false),
-                    MediaUrl = table.Column<string>(type: "longtext", nullable: false),
-                    MediaType = table.Column<string>(type: "longtext", nullable: false),
-                    MediaTypeUrl = table.Column<string>(type: "longtext", nullable: false),
-                    MediaName = table.Column<string>(type: "longtext", nullable: false),
-                    MediaDescription = table.Column<string>(type: "longtext", nullable: false)
+                    Url = table.Column<string>(type: "longtext", nullable: false),
+                    Type = table.Column<string>(type: "longtext", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProposalMedia", x => x.Id);
+                    table.PrimaryKey("PK_ProposalMedias", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProposalMedia_Proposal_ProposalId",
+                        name: "FK_ProposalMedias_Proposals_ProposalId",
                         column: x => x.ProposalId,
-                        principalTable: "Proposal",
+                        principalTable: "Proposals",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -224,14 +261,14 @@ namespace backend.Migrations
                 column: "WeddingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HowWeMet_WeddingStoryId",
-                table: "HowWeMet",
-                column: "WeddingStoryId");
+                name: "IX_HowWeMetMedias_HowWeMetId",
+                table: "HowWeMetMedias",
+                column: "HowWeMetId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HowWeMetMedia_HowWeMetId",
-                table: "HowWeMetMedia",
-                column: "HowWeMetId");
+                name: "IX_HowWeMetStories_WeddingStoryId",
+                table: "HowWeMetStories",
+                column: "WeddingStoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Media_WeddingId",
@@ -239,14 +276,24 @@ namespace backend.Migrations
                 column: "WeddingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Proposal_WeddingStoryId",
-                table: "Proposal",
-                column: "WeddingStoryId");
+                name: "IX_PlannerProfiles_PlannerId",
+                table: "PlannerProfiles",
+                column: "PlannerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProposalMedia_ProposalId",
-                table: "ProposalMedia",
+                name: "IX_PlannerProfiles_UserId",
+                table: "PlannerProfiles",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProposalMedias_ProposalId",
+                table: "ProposalMedias",
                 column: "ProposalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Proposals_WeddingStoryId",
+                table: "Proposals",
+                column: "WeddingStoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_QRCodes_WeddingId",
@@ -267,22 +314,28 @@ namespace backend.Migrations
                 name: "GuestMessages");
 
             migrationBuilder.DropTable(
-                name: "HowWeMetMedia");
+                name: "HowWeMetMedias");
 
             migrationBuilder.DropTable(
                 name: "Media");
 
             migrationBuilder.DropTable(
-                name: "ProposalMedia");
+                name: "PlannerProfiles");
+
+            migrationBuilder.DropTable(
+                name: "ProposalMedias");
 
             migrationBuilder.DropTable(
                 name: "QRCodes");
 
             migrationBuilder.DropTable(
-                name: "HowWeMet");
+                name: "HowWeMetStories");
 
             migrationBuilder.DropTable(
-                name: "Proposal");
+                name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Proposals");
 
             migrationBuilder.DropTable(
                 name: "Weddings");
