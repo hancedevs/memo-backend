@@ -11,8 +11,8 @@ services:
          - DB_HOST=mysql
          - DB_PORT=3306
          - DB_NAME=memosDB
-         - DB_USER=memos
-         - DB_PASSWORD=p@55w0rd
+         - DB_USER=root
+         - DB_PASSWORD=1qazXSW@
          - Frontend_Url=http://memo.plate.et
     volumes:
          - ./media:/app/wwwroot/qrcode

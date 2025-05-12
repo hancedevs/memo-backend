@@ -66,16 +66,16 @@ public static class WeddingEndpoints
         app.MapPost("/api/weddings", async ([FromBody] WeddingCreateDto story, MemoDbContext db, HttpContext context, FileStorageService fileStorageService) =>
         {
 
-            if (string.IsNullOrWhiteSpace(story.BrideName) || string.IsNullOrWhiteSpace(story.GroomName) || string.IsNullOrWhiteSpace(story.HowWeMet))
+            if (string.IsNullOrWhiteSpace(story.BrideName) || string.IsNullOrWhiteSpace(story.GroomName))
                 return Results.BadRequest("Couple name and How met are required.");
             var weddingStory = new WeddingStory
             {
                 BrideName = story.BrideName,
                 ThankYouMessage = story.ThankYouMessage,
-                Proposal = story.Proposal,
                 GroomName = story.GroomName,
                 GroomVows = story.GroomVows,
                 BrideVows = story.BrideVows,
+                CoverImage = story.CoverImage,
 
             };
             await db.Weddings.AddAsync(weddingStory);

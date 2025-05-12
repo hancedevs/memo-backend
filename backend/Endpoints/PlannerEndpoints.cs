@@ -10,7 +10,7 @@ public static class PlannerEndpoints
 {
     public static void MapPlannerEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/planners", async ([FromBody] PlannerCreateDto dto, MemoDbContext db,IWebHostEnvironment env) =>
+        app.MapPost("/api/planner", async ([FromBody] PlannerCreateDto dto, MemoDbContext db,IWebHostEnvironment env) =>
         {
             try
             {
@@ -108,10 +108,19 @@ public static class PlannerEndpoints
             return errors.Any() ? Results.BadRequest(new { Errors = errors }) : await next(context);
         });
 
-        app.MapGet("/api/planners", async (MemoDbContext context) =>
+        app.MapGet("/api/planner", async (MemoDbContext context) =>
         {
             var planners = await context.Planners.Select(p => new { p.Id, p.Name, p.Email }).ToListAsync();
             return Results.Ok(planners);
         }).WithTags("Planner").Produces<List<Planner>>(StatusCodes.Status200OK);
+        app.MapGet("/api/planner/{plannerId}",async (Guid plannerId, MemoDbContext context) =>
+        {
+            var planner = await context.Planners.SingleOrDefaultAsync(x => x.Id == plannerId);
+            if (planner == null)
+            {
+                return Results.NotFound("Planner not found.");
+            }
+            return Results.Ok(planner);
+        }).WithTags("Planner").Produces<Planner>(StatusCodes.Status200OK);
     }
 }

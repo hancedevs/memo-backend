@@ -20,6 +20,7 @@ namespace backend
         public DbSet<ProposalMedia> ProposalMedias { get; set; } // Add this line to include ProposalMedia in the context
         public DbSet<User> Users { get; set; }
         public DbSet<PlannerProfile> PlannerProfiles { get; set; }
+        public DbSet<OurJourney> OurJourneys { get; set; }
 
 
         public MemoDbContext(DbContextOptions<MemoDbContext> options) : base(options) { }
@@ -54,13 +55,15 @@ namespace backend
             .WithMany(w => w.GuestMessages)
             .HasForeignKey(q => q.WeddingId);
 
-            modelBuilder.Entity<Proposal>().HasOne(q => q.WeddingStory).WithMany(w => w.Proposals).HasForeignKey(q => q.WeddingStoryId);
-            modelBuilder.Entity<HowWeMet>().HasOne(q => q.WeddingStory).WithMany(w => w.HowWeMetStories).HasForeignKey(q => q.WeddingStoryId);
+            modelBuilder.Entity<Proposal>().HasOne(q => q.WeddingStory).WithOne(w => w.Proposals).HasForeignKey<Proposal>(q => q.WeddingStoryId);
+            modelBuilder.Entity<HowWeMet>().HasOne(q => q.WeddingStory).WithOne(w => w.HowWeMetStories).HasForeignKey<HowWeMet>(q => q.WeddingStoryId);
             modelBuilder.Entity<HowWeMetMedia>().HasOne(q => q.HowWeMet).WithMany(w => w.Media).HasForeignKey(q => q.HowWeMetId);
             modelBuilder.Entity<ProposalMedia>().HasOne(q => q.Proposal).WithMany(w => w.Media).HasForeignKey(q => q.ProposalId);
             modelBuilder.Entity<Planner>().HasMany(w => w.Weddings).WithOne(q => q.Planner).HasForeignKey(q => q.PlannerId);
             modelBuilder.Entity<PlannerProfile>().HasOne(x=>x.User).WithMany(q=>q.Planners).HasForeignKey(q => q.UserId);
             modelBuilder.Entity<PlannerProfile>().HasOne(x=>x.Planner).WithMany(x=>x.PlannerProfiles).HasForeignKey(q => q.PlannerId);
+            modelBuilder.Entity<OurJourney>().HasOne(x => x.WeddingStory).WithMany(x => x.OurJourneys).HasForeignKey(x => x.WeddingId);
+
 
 
 
