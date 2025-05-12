@@ -58,7 +58,13 @@ namespace backend.Endpoints
                     Story = howWeMet.Story,
                     Date = howWeMet.Date,
                     Location = howWeMet.Location,
-                    Media = medias
+                    Media = medias.Select(media => new HowWeMetMediaResponseDto
+                    {
+                        Id = media.Id,
+                        Url = media.Url,
+                        Type = media.Type,
+
+                    }).ToList()
                 };
                 return Results.Ok(howwemetMediaResponse);
             }).WithTags("HowWeMet").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK);
@@ -67,8 +73,23 @@ namespace backend.Endpoints
                 var howWeMet = await context.HowWeMetStories
                     .Include(h => h.Media)
                     .FirstOrDefaultAsync(h => h.Id == id);
-                return howWeMet != null ? Results.Ok(howWeMet) : Results.NotFound();
-            }).WithTags("HowWeMet");
+                var howwemetResponse = new HowWeMetResponseDto
+                {
+                    Id = howWeMet.Id,
+                    WeddingStoryId = howWeMet.WeddingStoryId,
+                    Story = howWeMet.Story,
+                    Date = howWeMet.Date,
+                    Location = howWeMet.Location,
+                    Media = howWeMet.Media.Select(media => new HowWeMetMediaResponseDto
+                    {
+                        Id = media.Id,
+                        Url = media.Url,
+                        Type = media.Type,
+                    }).ToList()
+                };
+                
+                return howwemetResponse != null ? Results.Ok(howwemetResponse) : Results.NotFound();
+            }).WithTags("HowWeMet").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK);
             app.MapDelete("/api/how-we-met/delete/{howwemetId}", async(Guid howwemetId, MemoDbContext context,IWebHostEnvironment env) =>
             {
                 var howwemet=await context.HowWeMetStories.SingleOrDefaultAsync(x=>x.Id== howwemetId);

@@ -10,7 +10,7 @@ public static class PlannerEndpoints
 {
     public static void MapPlannerEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/planner", async ([FromBody] PlannerCreateDto dto, MemoDbContext db,IWebHostEnvironment env) =>
+        app.MapPost("/api/planner", async ([FromForm] PlannerCreateDto dto, MemoDbContext db,IWebHostEnvironment env) =>
         {
             try
             {
@@ -23,7 +23,7 @@ public static class PlannerEndpoints
                 if (dto.Logo.Length > 0)
                 {
                     var logodirc = Path.Combine(env.WebRootPath, "logo");
-                    if (Directory.Exists(logodirc))
+                    if (!Directory.Exists(logodirc))
                     {
                         Directory.CreateDirectory(logodirc);
                     }
@@ -44,7 +44,10 @@ public static class PlannerEndpoints
             {
                 return Results.BadRequest(ex.Message);
             }
-        }).WithTags("Planner").Produces<Planner>(StatusCodes.Status200OK).AddEndpointFilter(async (context, next) =>
+        }).DisableAntiforgery()
+        .WithTags("Planner")
+        .Produces<Planner>(StatusCodes.Status200OK)
+        .AddEndpointFilter(async (context, next) =>
         {
             var dto = context.GetArgument<PlannerCreateDto>(0);
             var errors = new List<string>();
@@ -56,6 +59,7 @@ public static class PlannerEndpoints
             
             return errors.Any() ? Results.BadRequest(new { Errors = errors }) : await next(context);
         });
+
         app.MapPut("/api/planner/update", async (Guid plannerId, [FromBody] PlannerCreateDto dto, MemoDbContext db, IWebHostEnvironment env) =>
         {
             var planner = await db.Planners.SingleOrDefaultAsync(x => x.Id == plannerId);
@@ -95,7 +99,10 @@ public static class PlannerEndpoints
             db.Planners.Update(planner);
             await db.SaveChangesAsync();
             return Results.Ok(planner);
-        }).WithTags("Planner").Produces<Planner>(StatusCodes.Status200OK).AddEndpointFilter(async (context, next) =>
+        })
+        .WithTags("Planner")
+        .Produces<Planner>(StatusCodes.Status200OK)
+        .AddEndpointFilter(async (context, next) =>
         {
             var dto = context.GetArgument<PlannerCreateDto>(0);
             var errors = new List<string>();
@@ -110,9 +117,24 @@ public static class PlannerEndpoints
 
         app.MapGet("/api/planner", async (MemoDbContext context) =>
         {
-            var planners = await context.Planners.Select(p => new { p.Id, p.Name, p.Email }).ToListAsync();
-            return Results.Ok(planners);
-        }).WithTags("Planner").Produces<List<Planner>>(StatusCodes.Status200OK);
+            var planners = await context.Planners.ToListAsync();
+            if (planners == null)
+            {
+                return Results.NotFound("No planners found.");
+            }
+            var plannersDto = planners.Select(p => new PlannerResponseDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Email = p.Email,
+                Phone = p.Phone,
+                Logo = p.Logo,
+            }).ToList();
+            return Results.Ok(plannersDto);
+        })
+        .WithTags("Planner")
+        .Produces<List<PlannerResponseDto>>(StatusCodes.Status200OK);
+
         app.MapGet("/api/planner/{plannerId}",async (Guid plannerId, MemoDbContext context) =>
         {
             var planner = await context.Planners.SingleOrDefaultAsync(x => x.Id == plannerId);
@@ -120,7 +142,17 @@ public static class PlannerEndpoints
             {
                 return Results.NotFound("Planner not found.");
             }
-            return Results.Ok(planner);
-        }).WithTags("Planner").Produces<Planner>(StatusCodes.Status200OK);
+            var plannerDto = new PlannerResponseDto
+            {
+                Id = planner.Id,
+                Name = planner.Name,
+                Email = planner.Email,
+                Phone = planner.Phone,
+                Logo = planner.Logo,
+            };
+            return Results.Ok(plannerDto);
+        })
+        .WithTags("Planner")
+        .Produces<PlannerResponseDto>(StatusCodes.Status200OK);
     }
 }

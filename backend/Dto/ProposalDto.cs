@@ -1,8 +1,6 @@
-﻿using backend.Models;
-
-namespace backend.Dto
+﻿namespace backend.Dto
 {
-    public class HowWeMetCreateDto
+    public class ProposalCreateDto
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid WeddingStoryId { get; set; }
@@ -10,25 +8,25 @@ namespace backend.Dto
         public string Location { get; set; } // e.g., "Paris, France"
         public string Date { get; set; } // e.g., "2023-10-01"
         public IFormFile[] Files { get; set; }
-
     }
-    public class HowWeMetResponseDto
+    public class ProposalResponseDto
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid WeddingStoryId { get; set; }
         public string Story { get; set; }
         public string Location { get; set; } // e.g., "Paris, France"
         public string Date { get; set; } // e.g., "2023-10-01"
-        public List<HowWeMetMediaResponseDto> Media { get; set; } = new List<HowWeMetMediaResponseDto>();
+        public List<ProposalMediaResponseDto> Media { get; set; } = new List<ProposalMediaResponseDto>();
     }
-    public class HowWeMetMediaDto
+    public class ProposalMediaDto
     {
         public Guid Id { get; set; }
         public IFormFile File { get; set; }
-    }  public class HowWeMetMediaResponseDto
+    }
+    public class ProposalMediaResponseDto
     {
-        public Guid Id { get; set; } 
-        public Guid HowWeMetId { get; set; }
+        public Guid Id { get; set; }
+        public Guid ProposalId { get; set; }
         public string Url { get; set; }
         public string Type { get; set; } // "image" or "video"
     }

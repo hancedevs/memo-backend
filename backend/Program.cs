@@ -93,7 +93,7 @@ app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(
 app.MapAuthEndpoints();
 app.MapWeddingEndpoints();
 app.MapMediaEndpoints();
-//app.MapQRCodeEndpoints();
+app.MapQRCodeEndpoints();
 app.MapPlannerEndpoints();
 app.MapHowWeMetEndpoints();
 app.MapProposalEndpoints();

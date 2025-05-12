@@ -23,7 +23,7 @@ services:
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: 1qazXSW@
-      MYSQL_DATABASE: memosDb
+      MYSQL_DATABASE: memosDB
       MYSQL_USER: memos
       MYSQL_PASSWORD: p@55w0rd
     volumes:

@@ -10,11 +10,11 @@ namespace backend.Endpoints
     {
         public static void MapProposalEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/proposal", async ([FromBody] HowWeMetCreateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
+            app.MapPost("/api/proposal", async ([FromBody] ProposalCreateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
             {
                 if (dto.Files.Any(x => x.Length > 1 * 1024 * 1024)) // 50MB limit
                     return Results.BadRequest("File too large.");
-                var howWeMet = new Proposal
+                var proposal = new Proposal
                 {
                     WeddingStoryId = dto.WeddingStoryId,
                     Story = dto.Story,
@@ -23,9 +23,9 @@ namespace backend.Endpoints
                     Location = dto.Location,
 
                 };
-                context.Proposals.Add(howWeMet);
+                context.Proposals.Add(proposal);
                 await context.SaveChangesAsync();
-                var medias = new List<HowWeMetMedia>();
+                var medias = new List<ProposalMedia>();
                 var uploadsDir = Path.Combine(env.WebRootPath, "proposal");
                 if (!Directory.Exists(uploadsDir))
                 {
@@ -40,43 +40,64 @@ namespace backend.Endpoints
                         await file.CopyToAsync(stream);
                     }
                     var fileUrl = $"/proposal/{fileName}";
-                    var media = new HowWeMetMedia
+                    var media = new ProposalMedia
                     {
-                        HowWeMetId = howWeMet.Id,
+                        ProposalId = proposal.Id,
                         Url = fileUrl,
                         Type = file.ContentType,
                     };
                     medias.Add(media);
                 }
-                await context.HowWeMetMedias.AddRangeAsync(medias);
+                await context.ProposalMedias.AddRangeAsync(medias);
                 await context.SaveChangesAsync();
-                var howwemetMediaResponse = new HowWeMetResponseDto
+                var proposalMediaResponse = new ProposalResponseDto
                 {
-                    Id = howWeMet.Id,
-                    WeddingStoryId = howWeMet.WeddingStoryId,
-                    Story = howWeMet.Story,
-                    Date = howWeMet.Date,
-                    Location = howWeMet.Location,
-                    Media = medias
+                    Id = proposal.Id,
+                    WeddingStoryId = proposal.WeddingStoryId,
+                    Story = proposal.Story,
+                    Date = proposal.Date,
+                    Location = proposal.Location,
+                    Media = medias.Select(media=>new ProposalMediaResponseDto
+                    {
+                        Id = proposal.Id,
+                        ProposalId = proposal.Id,
+                        Url = media.Url,
+                        Type = media.Type,
+                    }).ToList()
                 };
-                return Results.Ok(howwemetMediaResponse);
-            }).WithTags("Proposal").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK);
+                return Results.Ok(proposalMediaResponse);
+            }).WithTags("Proposal").Produces<ProposalResponseDto>(StatusCodes.Status200OK);
 
             app.MapGet("/api/proposal/{id}", async (Guid id, MemoDbContext context) =>
             {
-                var howWeMet = await context.Proposals
+                var proposal = await context.Proposals
                     .Include(h => h.Media)
                     .FirstOrDefaultAsync(h => h.Id == id);
-                return howWeMet != null ? Results.Ok(howWeMet) : Results.NotFound();
-            }).WithTags("Proposal");
-
-            app.MapDelete("/api/proposal/delete/{howwemetId}", async (Guid howwemetId, MemoDbContext context, IWebHostEnvironment env) =>
-            {
-                var proposal = await context.Proposals.SingleOrDefaultAsync(x => x.Id == howwemetId);
-                var howwemetMedia = await context.HowWeMetMedias.Where(x => x.HowWeMetId == proposal.Id).ToListAsync();
-                if (howwemetMedia != null)
+                var proposalMediaResponse = new ProposalResponseDto
                 {
-                    foreach (var media in howwemetMedia)
+                    Id = proposal.Id,
+                    WeddingStoryId = proposal.WeddingStoryId,
+                    Story = proposal.Story,
+                    Date = proposal.Date,
+                    Location = proposal.Location,
+                    Media = proposal.Media.Select(media => new ProposalMediaResponseDto
+                    {
+                        Id = proposal.Id,
+                        ProposalId = proposal.Id,
+                        Url = media.Url,
+                        Type = media.Type,
+                    }).ToList()
+                };
+                return proposalMediaResponse != null ? Results.Ok(proposalMediaResponse) : Results.NotFound();
+            }).WithTags("Proposal").Produces<ProposalResponseDto>(StatusCodes.Status200OK);
+
+            app.MapDelete("/api/proposal/delete/{ProposalId}", async (Guid ProposalId, MemoDbContext context, IWebHostEnvironment env) =>
+            {
+                var proposal = await context.Proposals.SingleOrDefaultAsync(x => x.Id == ProposalId);
+                var ProposalMedia = await context.ProposalMedias.Where(x => x.ProposalId == proposal.Id).ToListAsync();
+                if (ProposalMedia != null)
+                {
+                    foreach (var media in ProposalMedia)
                     {
                         var uploadsDir = Path.Combine(env.WebRootPath, "proposal");
                         if (!Directory.Exists(uploadsDir))
@@ -93,7 +114,7 @@ namespace backend.Endpoints
                         {
                             Console.WriteLine($"File {filePath} does not exist.");
                         }
-                        context.HowWeMetMedias.Remove(media);
+                        context.ProposalMedias.Remove(media);
                     }
                 }
                 var result = context.Proposals.Remove(proposal);
@@ -101,22 +122,22 @@ namespace backend.Endpoints
                 return Results.Ok(result);
 
             }).WithTags("Proposal");
-            app.MapPut("/api/proposal/update", async ([FromBody] HowWeMetCreateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
+            app.MapPut("/api/proposal/update", async ([FromBody] ProposalCreateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
             {
-                var howWeMet = await context.Proposals.Include(h => h.Media).FirstOrDefaultAsync(h => h.Id == dto.Id);
-                if (howWeMet == null)
+                var Proposal = await context.Proposals.Include(h => h.Media).FirstOrDefaultAsync(h => h.Id == dto.Id);
+                if (Proposal == null)
                     return Results.NotFound();
-                howWeMet.Story = dto.Story;
-                howWeMet.Location = dto.Location;
-                howWeMet.Date = dto.Date;
-                context.Proposals.Update(howWeMet);
+                Proposal.Story = dto.Story;
+                Proposal.Location = dto.Location;
+                Proposal.Date = dto.Date;
+                context.Proposals.Update(Proposal);
                 await context.SaveChangesAsync();
                 var uploadsDir = Path.Combine(env.WebRootPath, "proposal");
                 if (!Directory.Exists(uploadsDir))
                 {
                     Directory.CreateDirectory(uploadsDir);
                 }
-                var existingMedia = await context.HowWeMetMedias.Where(m => m.HowWeMetId == howWeMet.Id).ToListAsync();
+                var existingMedia = await context.ProposalMedias.Where(m => m.ProposalId == Proposal.Id).ToListAsync();
                 if (existingMedia.Any())
                 {
                     foreach (var media in existingMedia)
@@ -132,7 +153,7 @@ namespace backend.Endpoints
                         {
                             Console.WriteLine($"File {filePath} does not exist.");
                         }
-                        context.HowWeMetMedias.Remove(media);
+                        context.ProposalMedias.Remove(media);
                     }
                 }
 
@@ -145,27 +166,27 @@ namespace backend.Endpoints
                         await file.CopyToAsync(stream);
                     }
                     var fileUrl = $"/proposal/{fileName}";
-                    var media = new HowWeMetMedia
+                    var media = new ProposalMedia
                     {
-                        HowWeMetId = howWeMet.Id,
+                        ProposalId = Proposal.Id,
                         Url = fileUrl,
                         Type = file.ContentType,
                     };
-                    context.HowWeMetMedias.Add(media);
+                    context.ProposalMedias.Add(media);
                 }
                 await context.SaveChangesAsync();
-                return Results.Ok(howWeMet);
-            }).WithTags("Proposal").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK);
-            app.MapGet("/api/proposal/media/{howwemetId}", async (Guid howwemetId, MemoDbContext context) =>
+                return Results.Ok(Proposal);
+            }).WithTags("Proposal").Produces<ProposalResponseDto>(StatusCodes.Status200OK);
+            app.MapGet("/api/proposal/media/{proposalId}", async (Guid proposalId, MemoDbContext context) =>
             {
-                var media = await context.HowWeMetMedias.Where(m => m.HowWeMetId == howwemetId).ToListAsync();
+                var media = await context.ProposalMedias.Where(m => m.ProposalId == proposalId).ToListAsync();
                 return media != null ? Results.Ok(media) : Results.NotFound();
             }).WithTags("Proposal");
 
 
-            app.MapDelete("/api/proposal/delete-media/{howWemetMeidaId}", async (Guid howWemetMeidaId, MemoDbContext db, IWebHostEnvironment env) =>
+            app.MapDelete("/api/proposal/delete-media/{ProposalMeidaId}", async (Guid ProposalMeidaId, MemoDbContext db, IWebHostEnvironment env) =>
             {
-                var media = await db.HowWeMetMedias.SingleOrDefaultAsync(x => x.Id == howWemetMeidaId);
+                var media = await db.ProposalMedias.SingleOrDefaultAsync(x => x.Id == ProposalMeidaId);
                 var uploadsDir = Path.Combine(env.WebRootPath, "proposal");
                 if (!Directory.Exists(uploadsDir))
                 {

@@ -17,20 +17,29 @@ public static class WeddingEndpoints
         {
 
             var weddings = await db.Weddings
-                .Include(w => w.Gallery)
-                .Include(w => w.QRCode)
                 .ToListAsync();
             var stories = new List<WeddingResponseDto>();
+            var planners = weddings.Any() ?
+            await db.Planners.Where(x => weddings.Select(c => c.PlannerId).Contains(x.Id)).Select(y => new PlannerResponseDto
+            {
+                Id=y.Id,
+                Name = y.Name,
+                Email = y.Email,
+                Phone = y.Phone,
+                Logo= y.Logo,
+            }).ToListAsync()
+            
+            :null;
             foreach (var story in weddings)
             {
-                var coimage = story.Gallery.FirstOrDefault(x => x.IsCoverImage);
-                var gallery = story.Gallery.Any() ? story.Gallery.Where(x => !x.IsCoverImage).Select(g => new MediaFileResponseDto
-                {
-                    Id = g.Id,
-                    Url = g.Url,
-                    Type = g.Type,
-                    IsCoverImage = g.IsCoverImage
-                }).ToList() : null;
+
+                //var gallery = story.Gallery.Any() ? story.Gallery.Where(x => !x.IsCoverImage).Select(g => new MediaFileResponseDto
+                //{
+                //    Id = g.Id,
+                //    Url = g.Url,
+                //    Type = g.Type,
+                //    IsCoverImage = g.IsCoverImage
+                //}).ToList() : null;
                 var qrcode = story.QRCode != null ? new WQRCodeResponse
                 {
                     Id = story.QRCode.Id,
@@ -45,23 +54,38 @@ public static class WeddingEndpoints
                     GroomName = story.GroomName,
                     BrideVows = story.BrideVows,
                     GroomVows = story.GroomVows,
-                    Proposal = story.Proposal,
-                    ThankYouMessage = story.ThankYouMessage,
-                    Gallery = gallery,
-                    QrCode = qrcode,
-                    CoverImage = coimage != null ? new MediaFileResponseDto
+                    Proposals = story.Proposals!=null?new ProposalResponseDto
                     {
-                        Id = coimage.Id,
-                        Url = coimage.Url,
-                        Type = coimage.Type,
-                        IsCoverImage = coimage.IsCoverImage
-                    } : new MediaFileResponseDto(),
+                        Id = story.Proposals.Id,
+                        Story = story.Proposals.Story,
+                        Date = story.Proposals.Date,
+                        Location = story.Proposals.Location,
+                    }: null,
+                    ThankYouMessage = story.ThankYouMessage,
+                    //Gallery = gallery,
+                    QrCode = qrcode,
+                    CoverImage = story.CoverImage,
+                    GuestMessages = story.GuestMessages,
+                    HowWeMetStories = story.HowWeMetStories!=null?new HowWeMetResponseDto
+                    {
+                        Id = story.HowWeMetStories.Id,
+                       Story = story.HowWeMetStories.Story,
+                        Date = story.HowWeMetStories.Date,
+                        Location = story.HowWeMetStories.Location,
+                    }: null,
+                    OurJourneys =story.OurJourneys,
+                    ThemePreference = story.ThemePreference,
+                    TemplateChoice = story.TemplateChoice,
+                    WeddingDate = story.WeddingDate,
+                    WeddingLocation = story.WeddingLocation,
+                    PlannerId = story.PlannerId,
+                    Planner = planners.SingleOrDefault(x=>x.Id==story.PlannerId),
                 };
                 stories.Add(response);
             }
 
             return Results.Ok(stories);
-        }).WithName("Wedding").WithTags("Wedding").WithDescription("This is to list weddings");
+        }).WithName("Wedding").WithTags("Wedding").WithDescription("This is to list weddings").Produces<List<WeddingResponseDto>>(StatusCodes.Status200OK);
 
         app.MapPost("/api/weddings", async ([FromBody] WeddingCreateDto story, MemoDbContext db, HttpContext context, FileStorageService fileStorageService) =>
         {
@@ -71,11 +95,16 @@ public static class WeddingEndpoints
             var weddingStory = new WeddingStory
             {
                 BrideName = story.BrideName,
-                ThankYouMessage = story.ThankYouMessage,
                 GroomName = story.GroomName,
-                GroomVows = story.GroomVows,
                 BrideVows = story.BrideVows,
+                GroomVows = story.GroomVows,
+                ThankYouMessage = story.ThankYouMessage,
                 CoverImage = story.CoverImage,
+                ThemePreference = story.ThemePreference,
+                TemplateChoice = story.TemplateChoice,
+                WeddingDate = story.WeddingDate,
+                WeddingLocation = story.WeddingLocation,
+                PlannerId = story.PlannerId
 
             };
             await db.Weddings.AddAsync(weddingStory);
@@ -98,6 +127,14 @@ public static class WeddingEndpoints
             {
                 return Results.NotFound("Wedding story not found.");
             }
+            var planners =  await db.Planners.Where(x => x.Id == story.PlannerId).Select(y => new PlannerResponseDto
+           {
+               Id = y.Id,
+               Name = y.Name,
+               Email = y.Email,
+               Phone = y.Phone,
+               Logo = y.Logo,
+           }).FirstOrDefaultAsync();
             var coimage = story.Gallery.FirstOrDefault(x => x.IsCoverImage);
             var gallery = story.Gallery.Any() ? story.Gallery.Where(x => !x.IsCoverImage).Select(g => new MediaFileResponseDto
             {
@@ -115,23 +152,42 @@ public static class WeddingEndpoints
             } : new WQRCodeResponse();
             var response = new WeddingResponseDto
             {
+                Id = story.Id,
                 BrideName = story.BrideName,
                 GroomName = story.GroomName,
                 BrideVows = story.BrideVows,
                 GroomVows = story.GroomVows,
-                Proposal = story.Proposal,
+                Proposals = story.Proposals != null ? new ProposalResponseDto
+                {
+                    Id = story.Proposals.Id,
+                    Story = story.Proposals.Story,
+                    Date = story.Proposals.Date,
+                    Location = story.Proposals.Location,
+                } : null,
                 ThankYouMessage = story.ThankYouMessage,
                 Gallery = gallery,
                 QrCode = qrcode,
-                CoverImage = coimage != null ? new MediaFileResponseDto
+                CoverImage = story.CoverImage,
+                GuestMessages = story.GuestMessages,
+                HowWeMetStories = story.HowWeMetStories != null ? new HowWeMetResponseDto
                 {
-                    Id = coimage.Id,
-                    Url = coimage.Url,
-                    Type = coimage.Type,
-                    IsCoverImage = coimage.IsCoverImage
-                } : new MediaFileResponseDto(),
+                    Id = story.HowWeMetStories.Id,
+                    Story = story.HowWeMetStories.Story,
+                    Date = story.HowWeMetStories.Date,
+                    Location = story.HowWeMetStories.Location,
+                } : null,
+                OurJourneys = story.OurJourneys,
+                ThemePreference = story.ThemePreference,
+                TemplateChoice = story.TemplateChoice,
+                WeddingDate = story.WeddingDate,
+                WeddingLocation = story.WeddingLocation,
+                PlannerId = story.PlannerId,
+                Planner = planners,
             };
             return Results.Ok(response);
+            
+           
+
         }).WithName("GetWedding").WithTags("Wedding").WithDescription("This is api to get wedding by id");
         app.MapPut("/api/weddings/{id}", async (Guid id, [FromBody] WeddingStory updatedStory, MemoDbContext db, HttpContext context) =>
         {
@@ -144,7 +200,12 @@ public static class WeddingEndpoints
             existingStory.BrideVows = updatedStory.BrideVows;
             existingStory.GroomVows = updatedStory.GroomVows;
             existingStory.ThankYouMessage = updatedStory.ThankYouMessage;
-            existingStory.Proposal = updatedStory.Proposal;
+            existingStory.WeddingDate = updatedStory.WeddingDate;
+            existingStory.WeddingLocation = updatedStory.WeddingLocation;
+            existingStory.CoverImage = updatedStory.CoverImage;
+            existingStory.ThemePreference = updatedStory.ThemePreference;
+            existingStory.TemplateChoice = updatedStory.TemplateChoice;
+            existingStory.PlannerId = updatedStory.PlannerId;
 
             db.Weddings.Update(existingStory);
             await db.SaveChangesAsync();
