@@ -54,7 +54,7 @@ public static class WeddingEndpoints
                     GroomName = story.GroomName,
                     BrideVows = story.BrideVows,
                     GroomVows = story.GroomVows,
-                    Proposals = story.Proposals!=null?new ProposalResponseDto
+                    Proposal = story.Proposals!=null?new ProposalResponseDto
                     {
                         Id = story.Proposals.Id,
                         Story = story.Proposals.Story,
@@ -66,7 +66,7 @@ public static class WeddingEndpoints
                     QrCode = qrcode,
                     CoverImage = story.CoverImage,
                     GuestMessages = story.GuestMessages,
-                    HowWeMetStories = story.HowWeMetStories!=null?new HowWeMetResponseDto
+                    HowWeMet = story.HowWeMetStories!=null?new HowWeMetResponseDto
                     {
                         Id = story.HowWeMetStories.Id,
                        Story = story.HowWeMetStories.Story,
@@ -120,7 +120,9 @@ public static class WeddingEndpoints
             var story = await db.Weddings
             .Include(w => w.QRCode)
             .Include(w => w.Gallery)
-
+            .Include(w => w.Proposals)
+            .Include(w => w.GuestMessages)
+            .Include(w => w.HowWeMetStories)
                 .FirstOrDefaultAsync(w => w.Id == id);
 
             if (story == null)
@@ -141,14 +143,17 @@ public static class WeddingEndpoints
                 Id = g.Id,
                 Url = g.Url,
                 Type = g.Type,
-                IsCoverImage = g.IsCoverImage
+                IsCoverImage = g.IsCoverImage,
+                WeddingId = g.WeddingId,
+
             }).ToList() : new List<MediaFileResponseDto>();
             var qrcode = story.QRCode != null ? new WQRCodeResponse
             {
                 Id = story.QRCode.Id,
                 Url = story.QRCode.Url,
                 AssetUrl = story.QRCode.AssetUrl,
-                Scans = story.QRCode.Scans
+                Scans = story.QRCode.Scans,
+                WeddingId = story.QRCode.WeddingId,
             } : new WQRCodeResponse();
             var response = new WeddingResponseDto
             {
@@ -157,24 +162,26 @@ public static class WeddingEndpoints
                 GroomName = story.GroomName,
                 BrideVows = story.BrideVows,
                 GroomVows = story.GroomVows,
-                Proposals = story.Proposals != null ? new ProposalResponseDto
+                Proposal = story.Proposals != null ? new ProposalResponseDto
                 {
                     Id = story.Proposals.Id,
                     Story = story.Proposals.Story,
                     Date = story.Proposals.Date,
                     Location = story.Proposals.Location,
+                    WeddingStoryId=story.Id
                 } : null,
                 ThankYouMessage = story.ThankYouMessage,
                 Gallery = gallery,
                 QrCode = qrcode,
                 CoverImage = story.CoverImage,
                 GuestMessages = story.GuestMessages,
-                HowWeMetStories = story.HowWeMetStories != null ? new HowWeMetResponseDto
+                HowWeMet = story.HowWeMetStories != null ? new HowWeMetResponseDto
                 {
                     Id = story.HowWeMetStories.Id,
                     Story = story.HowWeMetStories.Story,
                     Date = story.HowWeMetStories.Date,
                     Location = story.HowWeMetStories.Location,
+                    WeddingStoryId = story.Id
                 } : null,
                 OurJourneys = story.OurJourneys,
                 ThemePreference = story.ThemePreference,

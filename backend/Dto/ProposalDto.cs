@@ -2,7 +2,7 @@
 {
     public class ProposalCreateDto
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        
         public Guid WeddingStoryId { get; set; }
         public string Story { get; set; }
         public string Location { get; set; } // e.g., "Paris, France"
@@ -17,6 +17,14 @@
         public string Location { get; set; } // e.g., "Paris, France"
         public string Date { get; set; } // e.g., "2023-10-01"
         public List<ProposalMediaResponseDto> Media { get; set; } = new List<ProposalMediaResponseDto>();
+    } public class ProposalUpdateDto
+    {
+        public Guid Id { get; set; }
+        public Guid WeddingStoryId { get; set; }
+        public string Story { get; set; }
+        public string Location { get; set; } // e.g., "Paris, France"
+        public string Date { get; set; } // e.g., "2023-10-01"
+        public IFormFile[] Files { get; set; }
     }
     public class ProposalMediaDto
     {

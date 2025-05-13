@@ -31,7 +31,6 @@ namespace backend.Dto
         public string BrideName { get; set; }
         public string GroomName { get; set; }
         public string BrideVows { get; set; }
-        public string HowWeMet { get; set; }
         public string GroomVows { get; set; }
         public string ThankYouMessage { get; set; }
         public string? ThemePreference { get; set; }
@@ -48,8 +47,8 @@ namespace backend.Dto
 
         
         public List<GuestMessage> GuestMessages { get; set; } = new List<GuestMessage>();
-        public ProposalResponseDto Proposals { get; set; } = new ProposalResponseDto(); // One-to-one with Proposal
-        public HowWeMetResponseDto HowWeMetStories { get; set; } = new HowWeMetResponseDto(); // One-to-many with HowWeMet
+        public ProposalResponseDto Proposal { get; set; } = new ProposalResponseDto(); // One-to-one with Proposal
+        public HowWeMetResponseDto HowWeMet { get; set; } = new HowWeMetResponseDto(); // One-to-many with HowWeMet
         public PlannerResponseDto Planner { get; set; } = new PlannerResponseDto(); // Navigation property to Planner
         public List<OurJourney> OurJourneys { get; set; } = new List<OurJourney>();
     }

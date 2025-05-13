@@ -16,5 +16,6 @@ namespace backend.Dto
         public string Url { get; set; }
         public string Type { get; set; } // "image" or "video"
         public bool IsCoverImage { get; set; } = false;
+        public Guid WeddingId { get; set; }
     }
 }

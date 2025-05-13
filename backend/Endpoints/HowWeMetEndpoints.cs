@@ -12,7 +12,7 @@ namespace backend.Endpoints
     {
         public static void MapHowWeMetEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/how-we-met", async ([FromForm] HowWeMetCreateDto dto, MemoDbContext context,IWebHostEnvironment env) =>
+            app.MapPost("/api/howwemet", async ([FromForm] HowWeMetCreateDto dto, MemoDbContext context,IWebHostEnvironment env) =>
             {
                 if (dto.Files.Any(x=>x.Length> 1 * 1024 * 1024)) // 50MB limit
                     return Results.BadRequest("File too large.");
@@ -44,7 +44,7 @@ namespace backend.Endpoints
                     var media = new HowWeMetMedia
                     {
                         HowWeMetId =howWeMet.Id ,
-                        Url = fileUrl,
+                        Url = fileName,
                         Type = file.ContentType,
                     };
                     medias.Add(media);
@@ -67,8 +67,8 @@ namespace backend.Endpoints
                     }).ToList()
                 };
                 return Results.Ok(howwemetMediaResponse);
-            }).WithTags("HowWeMet").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK);
-            app.MapGet("/api/how-we-met/{id}", async (Guid id, MemoDbContext context) =>
+            }).WithTags("HowWeMet").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK).DisableAntiforgery();
+            app.MapGet("/api/howwemet/{id}", async (Guid id, MemoDbContext context) =>
             {
                 var howWeMet = await context.HowWeMetStories
                     .Include(h => h.Media)
@@ -90,7 +90,7 @@ namespace backend.Endpoints
                 
                 return howwemetResponse != null ? Results.Ok(howwemetResponse) : Results.NotFound();
             }).WithTags("HowWeMet").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK);
-            app.MapDelete("/api/how-we-met/delete/{howwemetId}", async(Guid howwemetId, MemoDbContext context,IWebHostEnvironment env) =>
+            app.MapDelete("/api/howwemet/delete/{howwemetId}", async(Guid howwemetId, MemoDbContext context,IWebHostEnvironment env) =>
             {
                 var howwemet=await context.HowWeMetStories.SingleOrDefaultAsync(x=>x.Id== howwemetId);
                 var howwemetMedia = await context.HowWeMetMedias.Where(x => x.HowWeMetId == howwemet.Id).ToListAsync();
@@ -121,7 +121,7 @@ namespace backend.Endpoints
                 return Results.Ok(result);
 
             }).WithTags("HowWeMet");
-            app.MapPut("/api/how-we-met/update", async ([FromBody] HowWeMetCreateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
+            app.MapPut("/api/howwemet/update", async ([FromForm] HowWeMetUpdateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
             {
                 var howWeMet = await context.HowWeMetStories.Include(h => h.Media).FirstOrDefaultAsync(h => h.Id == dto.Id);
                 if (howWeMet == null)
@@ -142,7 +142,7 @@ namespace backend.Endpoints
                     foreach (var media in existingMedia)
                     {
                         
-                        string filePath = Path.Combine(env.WebRootPath, media.Url);
+                        string filePath = Path.Combine(uploadsDir, media.Url);
                         if (File.Exists(filePath))
                         {
                             File.Delete(filePath);
@@ -168,22 +168,22 @@ namespace backend.Endpoints
                     var media = new HowWeMetMedia
                     {
                         HowWeMetId = howWeMet.Id,
-                        Url = fileUrl,
+                        Url = fileName,
                         Type = file.ContentType,
                     };
                     context.HowWeMetMedias.Add(media);
                 }
                 await context.SaveChangesAsync();
                 return Results.Ok(howWeMet);
-            }).WithTags("HowWeMet").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK);
-            app.MapGet("/api/how-we-met/media/{howwemetId}", async (Guid howwemetId, MemoDbContext context) =>
+            }).WithTags("HowWeMet").Produces<HowWeMetResponseDto>(StatusCodes.Status200OK).DisableAntiforgery();
+            app.MapGet("/api/howwemet/media/{howwemetId}", async (Guid howwemetId, MemoDbContext context) =>
             {
                 var media = await context.HowWeMetMedias.Where(m => m.HowWeMetId == howwemetId).ToListAsync();
                 return media != null ? Results.Ok(media) : Results.NotFound();
             }).WithTags("HowWeMet");
             
 
-            app.MapDelete("/api/how-we-met/delete-media/{howWemetMeidaId}", async (Guid howWemetMeidaId, MemoDbContext db,IWebHostEnvironment  env) =>
+            app.MapDelete("/api/howwemet/delete-media/{howWemetMeidaId}", async (Guid howWemetMeidaId, MemoDbContext db,IWebHostEnvironment  env) =>
             {
                 var media=await db.HowWeMetMedias.SingleOrDefaultAsync(x=>x.Id== howWemetMeidaId);
                 var uploadsDir = Path.Combine(env.WebRootPath, "howwemet");

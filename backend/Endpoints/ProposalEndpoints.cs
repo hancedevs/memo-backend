@@ -43,7 +43,7 @@ namespace backend.Endpoints
                     var media = new ProposalMedia
                     {
                         ProposalId = proposal.Id,
-                        Url = fileUrl,
+                        Url = fileName,
                         Type = file.ContentType,
                     };
                     medias.Add(media);
@@ -66,7 +66,7 @@ namespace backend.Endpoints
                     }).ToList()
                 };
                 return Results.Ok(proposalMediaResponse);
-            }).WithTags("Proposal").Produces<ProposalResponseDto>(StatusCodes.Status200OK);
+            }).WithTags("Proposal").Produces<ProposalResponseDto>(StatusCodes.Status200OK).DisableAntiforgery();
 
             app.MapGet("/api/proposal/{id}", async (Guid id, MemoDbContext context) =>
             {
@@ -91,9 +91,9 @@ namespace backend.Endpoints
                 return proposalMediaResponse != null ? Results.Ok(proposalMediaResponse) : Results.NotFound();
             }).WithTags("Proposal").Produces<ProposalResponseDto>(StatusCodes.Status200OK);
 
-            app.MapDelete("/api/proposal/delete/{ProposalId}", async (Guid ProposalId, MemoDbContext context, IWebHostEnvironment env) =>
+            app.MapDelete("/api/proposal/delete/{proposalId}", async (Guid proposalId, MemoDbContext context, IWebHostEnvironment env) =>
             {
-                var proposal = await context.Proposals.SingleOrDefaultAsync(x => x.Id == ProposalId);
+                var proposal = await context.Proposals.SingleOrDefaultAsync(x => x.Id == proposalId);
                 var ProposalMedia = await context.ProposalMedias.Where(x => x.ProposalId == proposal.Id).ToListAsync();
                 if (ProposalMedia != null)
                 {
@@ -122,7 +122,7 @@ namespace backend.Endpoints
                 return Results.Ok(result);
 
             }).WithTags("Proposal");
-            app.MapPut("/api/proposal/update", async ([FromBody] ProposalCreateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
+            app.MapPut("/api/proposal/update", async ([FromForm] ProposalUpdateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
             {
                 var Proposal = await context.Proposals.Include(h => h.Media).FirstOrDefaultAsync(h => h.Id == dto.Id);
                 if (Proposal == null)
@@ -176,7 +176,7 @@ namespace backend.Endpoints
                 }
                 await context.SaveChangesAsync();
                 return Results.Ok(Proposal);
-            }).WithTags("Proposal").Produces<ProposalResponseDto>(StatusCodes.Status200OK);
+            }).WithTags("Proposal").DisableAntiforgery().Produces<ProposalResponseDto>(StatusCodes.Status200OK);
             app.MapGet("/api/proposal/media/{proposalId}", async (Guid proposalId, MemoDbContext context) =>
             {
                 var media = await context.ProposalMedias.Where(m => m.ProposalId == proposalId).ToListAsync();
