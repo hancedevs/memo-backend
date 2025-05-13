@@ -12,7 +12,7 @@ namespace backend.Endpoints
     {
         public static void MapHowWeMetEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/how-we-met", async ([FromBody] HowWeMetCreateDto dto, MemoDbContext context,IWebHostEnvironment env) =>
+            app.MapPost("/api/how-we-met", async ([FromForm] HowWeMetCreateDto dto, MemoDbContext context,IWebHostEnvironment env) =>
             {
                 if (dto.Files.Any(x=>x.Length> 1 * 1024 * 1024)) // 50MB limit
                     return Results.BadRequest("File too large.");

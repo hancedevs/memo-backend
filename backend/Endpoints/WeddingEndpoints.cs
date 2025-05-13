@@ -16,7 +16,7 @@ public static class WeddingEndpoints
         app.MapGet("/api/weddings", async (MemoDbContext db, HttpContext context) =>
         {
 
-            var weddings = await db.Weddings
+            var weddings = await db.Weddings.Where(x=>x.IsActive==true&&x.IsDeleted==true)
                 .ToListAsync();
             var stories = new List<WeddingResponseDto>();
             var planners = weddings.Any() ?
