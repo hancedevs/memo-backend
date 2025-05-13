@@ -8,16 +8,13 @@ namespace backend.Dto
 {
     public class PlannerCreateDto
 {
-    [Required]
-    public string Name { get; set; }
-
-    [Required, EmailAddress]
-    public string Email { get; set; }
-
-
+        public string Name { get; set; }
+        public string Email { get; set; }
         public string Phone { get; set; }
         public IFormFile Logo { get; set; }
 }
+    
+    
     public class PlannerResponseDto
     {
         public Guid Id { get; set; }

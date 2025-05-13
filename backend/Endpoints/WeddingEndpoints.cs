@@ -189,7 +189,7 @@ public static class WeddingEndpoints
            
 
         }).WithName("GetWedding").WithTags("Wedding").WithDescription("This is api to get wedding by id");
-        app.MapPut("/api/weddings/{id}", async (Guid id, [FromBody] WeddingStory updatedStory, MemoDbContext db, HttpContext context) =>
+        app.MapPut("/api/weddings/{id}", async (Guid id, [FromBody] WeddingUpdateDto updatedStory, MemoDbContext db, HttpContext context) =>
         {
             updatedStory.Id = id;
             var existingStory = await db.Weddings.FirstOrDefaultAsync(w => w.Id == id);
@@ -206,6 +206,8 @@ public static class WeddingEndpoints
             existingStory.ThemePreference = updatedStory.ThemePreference;
             existingStory.TemplateChoice = updatedStory.TemplateChoice;
             existingStory.PlannerId = updatedStory.PlannerId;
+            existingStory.IsPublic = updatedStory.IsPublic;
+            existingStory.IsActive = updatedStory.IsActive;
 
             db.Weddings.Update(existingStory);
             await db.SaveChangesAsync();
@@ -225,7 +227,8 @@ public static class WeddingEndpoints
         {
             var wedding = await db.Weddings.FindAsync(id);
             if (wedding == null) return Results.NotFound();
-            db.Weddings.Remove(wedding);
+            wedding.IsDeleted=true;
+            db.Weddings.Update(wedding);
             await db.SaveChangesAsync();
             return Results.NoContent();
         }).WithName("DeleteWedding").WithTags("Wedding").WithDescription("This is api to delete wedding by id");
@@ -238,7 +241,31 @@ public static class WeddingEndpoints
         }).WithName("GetWeddingQRCode")
         .WithDescription("This is api to get wedding qr code").WithTags("QR Code");
 
-       
+        app.MapPost("/api/media/upload/coverImage", async ([FromForm] MediaFileDto file, MemoDbContext db, IWebHostEnvironment env) =>
+        {
+            if (file.File.Length > 1 * 1024 * 1024) // 50MB limit
+                return Results.BadRequest("File too large.");
+
+            if(file.WeddingId == Guid.Empty)
+                return Results.BadRequest("WeddingId is required.");
+            var existingCoverImage = await db.Weddings.FirstOrDefaultAsync(m => m.Id == file.WeddingId);
+            if(existingCoverImage == null)
+                return Results.NotFound("Wedding not found.");
+            var uploadsDir = Path.Combine(env.WebRootPath, "media");
+            Directory.CreateDirectory(uploadsDir);
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.File.FileName)}";
+            var filePath = Path.Combine(uploadsDir, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.File.CopyToAsync(stream);
+            }
+            var fileUrl = $"/media/{fileName}";
+            existingCoverImage.CoverImage = fileUrl;    
+            db.Weddings.Update(existingCoverImage);
+            await db.SaveChangesAsync();
+            return Results.Ok(new { Url = fileUrl });
+        })
+                 .WithTags("Wedding").DisableAntiforgery();
 
     }
 

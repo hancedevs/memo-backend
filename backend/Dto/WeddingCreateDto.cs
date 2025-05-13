@@ -20,6 +20,7 @@ namespace backend.Dto
         public string WeddingLocation { get; set; } // e.g., "Paris, France"
         public string? CoverImage { get; set; } // e.g., "cover_image.jpg"
         public Guid PlannerId { get; set; } // Foreign key to Planner
+        public bool IsPublic { get; set; } // Indicates if the wedding story is public or private
         //public IFormFile[] Gallery { get; set; }
         //public IFormFile CoverImage { get; set; }
 
@@ -39,6 +40,9 @@ namespace backend.Dto
         public string WeddingLocation { get; set; } // e.g., "Paris, France"
         public string? CoverImage { get; set; } // e.g., "cover_image.jpg"
         public Guid PlannerId { get; set; } // Foreign key to Planner
+        public bool IsPublic { get; set; } // Indicates if the wedding story is public or private
+        public bool IsActive { get; set; } = true; // Indicates if the wedding story is active
+        public bool IsDeleted { get; set; } = false;
         public List<MediaFileResponseDto> Gallery { get; set; } = new List<MediaFileResponseDto>();
         public WQRCodeResponse QrCode { get; set; } = new WQRCodeResponse();
 
@@ -68,6 +72,16 @@ namespace backend.Dto
         public string GroomVows { get; set; }
         public string Proposal { get; set; }
         public string ThankYouMessage { get; set; }
+        public string? ThemePreference { get; set; }
+        public string? TemplateChoice { get; set; }
+        public string WeddingDate { get; set; } // e.g., "2023-10-01"
+        public string WeddingLocation { get; set; } // e.g., "Paris, France"
+        public string? CoverImage { get; set; } // e.g., "cover_image.jpg"
+        public Guid PlannerId { get; set; } // Foreign key to Planner
+        public bool IsPublic { get; set; } // Indicates if the wedding story is public or private
+        public bool IsActive { get; set; } = true; // Indicates if the wedding story is active
+        public bool IsDeleted { get; set; } = false;
+
     }
 
 }

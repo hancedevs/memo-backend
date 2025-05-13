@@ -14,7 +14,9 @@ namespace backend.Models
     public string Email { get; set; }
         public string Phone { get; set; }
         public string Logo { get; set; }
-    public List<WeddingStory> Weddings { get; set; }
+        public bool IsActive { get; set; }=true;
+        public bool IsDeleted { get; set; } = false;
+        public List<WeddingStory> Weddings { get; set; }
         public virtual List<PlannerProfile> PlannerProfiles { get; set; }
     }
 

@@ -21,6 +21,9 @@ namespace backend.Models
         public string WeddingLocation { get; set; } // e.g., "Paris, France"
         public string? CoverImage { get; set; } // e.g., "cover_image.jpg"
         public Guid PlannerId { get; set; } // Foreign key to Planner
+        public bool IsPublic { get; set; } // Indicates if the wedding story is public or private
+        public bool IsActive { get; set; } = true; // Indicates if the wedding story is active
+        public bool IsDeleted { get; set; } = false;
         public virtual List<Media> Gallery { get; set; }
         public virtual  List<GuestMessage> GuestMessages { get; set; }
         public WQRCode QRCode { get; set; } // One-to-one with QRCode
