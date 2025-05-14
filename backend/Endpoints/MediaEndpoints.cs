@@ -50,11 +50,11 @@ namespace backend.Endpoints
             {
                
 
-                var existingCoverImage = await db.Media.FirstOrDefaultAsync(m => m.Id == dto.WeddingId && m.IsCoverImage);
+                var existingCoverImage = await db.Media.Where(m => m.WeddingId == dto.WeddingId && m.IsCoverImage).ToListAsync();
                 var newCoverImage = await db.Media.FirstOrDefaultAsync(m => m.Id == dto.NewCoverImageId);
-                if (existingCoverImage != null)
+                if (existingCoverImage.Any())
                 {
-                    existingCoverImage.IsCoverImage = false;
+                    existingCoverImage.ForEach(x => x.IsCoverImage =false);
 
                     
                 }
@@ -62,6 +62,7 @@ namespace backend.Endpoints
                 newCoverImage.IsCoverImage = true;
 
                  db.Media.Update(newCoverImage);
+                 db.Media.UpdateRange(existingCoverImage);
                 await db.SaveChangesAsync();
                 var response= new MediaFileResponseDto
                 {
