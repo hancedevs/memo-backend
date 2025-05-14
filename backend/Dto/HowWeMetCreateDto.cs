@@ -9,7 +9,6 @@ namespace backend.Dto
         public string Story { get; set; }
         public string Location { get; set; } // e.g., "Paris, France"
         public string Date { get; set; } // e.g., "2023-10-01"
-        public IFormFileCollection Files { get; set; }
 
     } public class HowWeMetUpdateDto
     {
@@ -18,7 +17,6 @@ namespace backend.Dto
         public string Story { get; set; }
         public string Location { get; set; } // e.g., "Paris, France"
         public string Date { get; set; } // e.g., "2023-10-01"
-        public IFormFileCollection Files { get; set; }
 
     }
     public class HowWeMetResponseDto
@@ -32,8 +30,8 @@ namespace backend.Dto
     }
     public class HowWeMetMediaDto
     {
-        public Guid Id { get; set; }
-        public IFormFileCollection File { get; set; }
+        public Guid HowWeMetId { get; set; }
+        public IFormFile File { get; set; }
     }  public class HowWeMetMediaResponseDto
     {
         public Guid Id { get; set; } 

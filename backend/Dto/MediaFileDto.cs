@@ -18,4 +18,9 @@ namespace backend.Dto
         public bool IsCoverImage { get; set; } = false;
         public Guid WeddingId { get; set; }
     }
+    public class CoverImageDto
+    {
+        public Guid NewCoverImageId { get; set; }
+        public Guid WeddingId { get; set; }
+    }
 }

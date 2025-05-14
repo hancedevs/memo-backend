@@ -17,16 +17,19 @@ namespace backend.Endpoints
             {
                 if (file.File.Length > 1 * 1024 * 1024) // 50MB limit
                     return Results.BadRequest("File too large.");
-
-                var uploadsDir = Path.Combine(env.WebRootPath, "media");
-                Directory.CreateDirectory(uploadsDir);
+                var gallery = $"gallery/{file.WeddingId}";
+                var uploadsDir = Path.Combine(env.WebRootPath, gallery);
+                if (!Directory.Exists(uploadsDir))
+                {
+                    Directory.CreateDirectory(uploadsDir);
+                }
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.File.FileName)}";
                 var filePath = Path.Combine(uploadsDir, fileName);
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.File.CopyToAsync(stream);
                 }
-                var fileUrl = $"/media/{fileName}";
+                var fileUrl = $"{gallery}/{fileName}";
                 var media = new Media
                 {
                     WeddingId = file.WeddingId,
@@ -43,50 +46,72 @@ namespace backend.Endpoints
                 var media = await db.Media.Where(m => m.WeddingId == weddingId).ToListAsync();
                 return media != null ? Results.Ok(media) : Results.NotFound();
             }).WithTags("Wedding");
-            app.MapPut("/api/media/update/coverImage", async ([FromForm] MediaFileDto file, MemoDbContext db, IWebHostEnvironment env) =>
+            app.MapPut("/api/media/update/coverImage", async ([FromBody] CoverImageDto dto, MemoDbContext db, IWebHostEnvironment env) =>
             {
-                if (file.File.Length > 1 * 1024 * 1024) // 50MB limit  
-                    return Results.BadRequest("File too large.");
+               
 
-                var uploadsDir = Path.Combine(env.WebRootPath, "media");
-                Directory.CreateDirectory(uploadsDir);
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.File.FileName)}";
-                var filePath = Path.Combine(uploadsDir, fileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.File.CopyToAsync(stream);
-                }
-                var fileUrl = $"/media/{fileName}";
-
-                var existingCoverImage = await db.Media.FirstOrDefaultAsync(m => m.WeddingId == file.WeddingId && m.IsCoverImage);
+                var existingCoverImage = await db.Media.FirstOrDefaultAsync(m => m.Id == dto.WeddingId && m.IsCoverImage);
+                var newCoverImage = await db.Media.FirstOrDefaultAsync(m => m.Id == dto.NewCoverImageId);
                 if (existingCoverImage != null)
                 {
                     existingCoverImage.IsCoverImage = false;
 
-                    // Remove the old image file from the server
-                    var oldFilePath = Path.Combine(env.WebRootPath, existingCoverImage.Url.TrimStart('/'));
-                    if (File.Exists(oldFilePath))
-                    {
-                        File.Delete(oldFilePath);
-                    }
+                    
                 }
 
-                var newCoverImage = new Media
+                newCoverImage.IsCoverImage = true;
+
+                 db.Media.Update(newCoverImage);
+                await db.SaveChangesAsync();
+                var response= new MediaFileResponseDto
                 {
-                    WeddingId = file.WeddingId,
-                    Url = fileUrl,
-                    Type = file.File.ContentType,
-                    IsCoverImage = true
+                    Id = newCoverImage.Id,
+                    Url = newCoverImage.Url,
+                    Type = newCoverImage.Type,
+                    IsCoverImage = newCoverImage.IsCoverImage,
+                    WeddingId = newCoverImage.WeddingId
                 };
 
-                await db.Media.AddAsync(newCoverImage);
-                await db.SaveChangesAsync();
+                return Results.Ok(response);
+            }).WithTags("Wedding").Produces<MediaFileResponseDto>(StatusCodes.Status200OK).DisableAntiforgery();
 
-                return Results.Ok(new { Url = fileUrl });
-            }).WithTags("Wedding").DisableAntiforgery();
+            app.MapDelete("/api/wedding/delete-media/{mediaId}", async (Guid mediaId, MemoDbContext db, IWebHostEnvironment env) =>
+            {
+                var success = false;
+                try
+                {
+                    var media = await db.Media.SingleOrDefaultAsync(x => x.Id == mediaId);
+                    var uploadsDir = Path.Combine(env.WebRootPath, media.Url);
+                    
+                       
+                        string filePath = Path.Combine(env.WebRootPath, media.Url);
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                            success = true;
+                            Console.WriteLine($"File {filePath} deleted successfully.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"File {filePath} does not exist.");
+                        }
+                        db.Media.Remove(media);
+                        await db.SaveChangesAsync();
+                    
+                    
+                    return Results.Ok(success);
+                }
+                catch (Exception)
+                {
 
-            
-            
+                    throw;
+                }
+
+
+            }).WithTags("Wedding").WithDescription("This api is to remove image from How Met image list").Produces<bool>(StatusCodes.Status200OK);
+
+
+
         }
     }
     public class IgnoreAntiforgeryTokenFilter : IEndpointFilter

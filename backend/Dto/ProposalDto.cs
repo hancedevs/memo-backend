@@ -7,7 +7,6 @@
         public string Story { get; set; }
         public string Location { get; set; } // e.g., "Paris, France"
         public string Date { get; set; } // e.g., "2023-10-01"
-        public IFormFile[] Files { get; set; }
     }
     public class ProposalResponseDto
     {
@@ -24,11 +23,10 @@
         public string Story { get; set; }
         public string Location { get; set; } // e.g., "Paris, France"
         public string Date { get; set; } // e.g., "2023-10-01"
-        public IFormFile[] Files { get; set; }
     }
     public class ProposalMediaDto
     {
-        public Guid Id { get; set; }
+        public Guid ProposalId { get; set; }
         public IFormFile File { get; set; }
     }
     public class ProposalMediaResponseDto

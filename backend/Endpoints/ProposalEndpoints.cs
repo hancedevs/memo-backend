@@ -10,10 +10,9 @@ namespace backend.Endpoints
     {
         public static void MapProposalEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/proposal", async ([FromForm] ProposalCreateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
+            app.MapPost("/api/proposal", async ([FromBody] ProposalCreateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
             {
-                if (dto.Files.Any(x => x.Length > 1 * 1024 * 1024)) // 50MB limit
-                    return Results.BadRequest("File too large.");
+               
                 var proposal = new Proposal
                 {
                     WeddingStoryId = dto.WeddingStoryId,
@@ -25,45 +24,13 @@ namespace backend.Endpoints
                 };
                 context.Proposals.Add(proposal);
                 await context.SaveChangesAsync();
-                var medias = new List<ProposalMedia>();
-                var uploadsDir = Path.Combine(env.WebRootPath, "proposal");
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
-                }
-                foreach (var file in dto.Files)
-                {
-                    var fileName = $"proposal-{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                    var filePath = Path.Combine(uploadsDir, fileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-                    var fileUrl = $"/proposal/{fileName}";
-                    var media = new ProposalMedia
-                    {
-                        ProposalId = proposal.Id,
-                        Url = fileName,
-                        Type = file.ContentType,
-                    };
-                    medias.Add(media);
-                }
-                await context.ProposalMedias.AddRangeAsync(medias);
-                await context.SaveChangesAsync();
                 var proposalMediaResponse = new ProposalResponseDto
                 {
                     Id = proposal.Id,
                     WeddingStoryId = proposal.WeddingStoryId,
                     Story = proposal.Story,
                     Date = proposal.Date,
-                    Location = proposal.Location,
-                    Media = medias.Select(media=>new ProposalMediaResponseDto
-                    {
-                        Id = proposal.Id,
-                        ProposalId = proposal.Id,
-                        Url = media.Url,
-                        Type = media.Type,
-                    }).ToList()
+                    Location = proposal.Location
                 };
                 return Results.Ok(proposalMediaResponse);
             }).WithTags("Proposal").Produces<ProposalResponseDto>(StatusCodes.Status200OK).DisableAntiforgery();
@@ -122,9 +89,9 @@ namespace backend.Endpoints
                 return Results.Ok(result);
 
             }).WithTags("Proposal");
-            app.MapPut("/api/proposal/update", async ([FromForm] ProposalUpdateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
+            app.MapPut("/api/proposal/update", async ([FromBody] ProposalUpdateDto dto, MemoDbContext context, IWebHostEnvironment env) =>
             {
-                var Proposal = await context.Proposals.Include(h => h.Media).FirstOrDefaultAsync(h => h.Id == dto.Id);
+                var Proposal = await context.Proposals.SingleOrDefaultAsync(h => h.Id == dto.Id);
                 if (Proposal == null)
                     return Results.NotFound();
                 Proposal.Story = dto.Story;
@@ -132,71 +99,35 @@ namespace backend.Endpoints
                 Proposal.Date = dto.Date;
                 context.Proposals.Update(Proposal);
                 await context.SaveChangesAsync();
-                var uploadsDir = Path.Combine(env.WebRootPath, "proposal");
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
-                }
-                var existingMedia = await context.ProposalMedias.Where(m => m.ProposalId == Proposal.Id).ToListAsync();
-                if (existingMedia.Any())
-                {
-                    foreach (var media in existingMedia)
-                    {
-
-                        string filePath = Path.Combine(env.WebRootPath, media.Url);
-                        if (File.Exists(filePath))
-                        {
-                            File.Delete(filePath);
-                            Console.WriteLine($"File {filePath} deleted successfully.");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"File {filePath} does not exist.");
-                        }
-                        context.ProposalMedias.Remove(media);
-                    }
-                }
-
-                foreach (var file in dto.Files)
-                {
-                    var fileName = $"proposal-{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                    var filePath = Path.Combine(uploadsDir, fileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-                    var fileUrl = $"/proposal/{fileName}";
-                    var media = new ProposalMedia
-                    {
-                        ProposalId = Proposal.Id,
-                        Url = fileUrl,
-                        Type = file.ContentType,
-                    };
-                    context.ProposalMedias.Add(media);
-                }
-                await context.SaveChangesAsync();
+                
                 return Results.Ok(Proposal);
             }).WithTags("Proposal").DisableAntiforgery().Produces<ProposalResponseDto>(StatusCodes.Status200OK);
+
             app.MapGet("/api/proposal/media/{proposalId}", async (Guid proposalId, MemoDbContext context) =>
             {
                 var media = await context.ProposalMedias.Where(m => m.ProposalId == proposalId).ToListAsync();
-                return media != null ? Results.Ok(media) : Results.NotFound();
-            }).WithTags("Proposal");
-
-
-            app.MapDelete("/api/proposal/delete-media/{ProposalMeidaId}", async (Guid ProposalMeidaId, MemoDbContext db, IWebHostEnvironment env) =>
-            {
-                var media = await db.ProposalMedias.SingleOrDefaultAsync(x => x.Id == ProposalMeidaId);
-                var uploadsDir = Path.Combine(env.WebRootPath, "proposal");
-                if (!Directory.Exists(uploadsDir))
+                var mediaResponse = media.Select(m => new ProposalMediaResponseDto
                 {
-                    Directory.CreateDirectory(uploadsDir);
-                }
+                    Id = m.Id,
+                    ProposalId = m.ProposalId,
+                    Url = m.Url,
+                    Type = m.Type
+                }).ToList();
+                return media != null ? Results.Ok(mediaResponse) : Results.NotFound();
+            }).WithTags("Proposal").Produces<ProposalMediaResponseDto>(StatusCodes.Status200OK);
+
+
+            app.MapDelete("/api/proposal/delete-media/{proposalMeidaId}", async (Guid proposalMeidaId, MemoDbContext db, IWebHostEnvironment env) =>
+            {
+                var media = await db.ProposalMedias.SingleOrDefaultAsync(x => x.Id == proposalMeidaId);
+                  
                 string filePath = Path.Combine(env.WebRootPath, media.Url);
                 if (File.Exists(filePath))
                 {
                     File.Delete(filePath);
                     Console.WriteLine($"File {filePath} deleted successfully.");
+                    db.ProposalMedias.Remove(media);
+                    await db.SaveChangesAsync();
                 }
                 else
                 {
@@ -204,6 +135,51 @@ namespace backend.Endpoints
                 }
 
             }).WithTags("Proposal").WithDescription("This api is to remove image from How Met image list");
+            app.MapPost("/api/proposal/fileUpload", async ([FromForm] ProposalMediaDto file, MemoDbContext db, IWebHostEnvironment env) =>
+            {
+                if (file.File.Length > 1 * 1024 * 1024) // 50MB limit
+                    return Results.BadRequest("File too large.");
+                try
+                {
+
+                    var proposalGallery = $"proposal/{file.ProposalId}";
+                    var uploadsDir = Path.Combine(env.WebRootPath, proposalGallery);
+                    if (!Directory.Exists(uploadsDir))
+                    {
+                        Directory.CreateDirectory(uploadsDir);
+                    }
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.File.FileName)}";
+                    var filePath = Path.Combine(uploadsDir, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.File.CopyToAsync(stream);
+                    }
+                    var fileUrl = $"{proposalGallery}/{fileName}";
+                    var media = new ProposalMedia
+                    {
+                        ProposalId = file.ProposalId,
+                        Url = fileUrl,
+                        Type = file.File.ContentType,
+
+                    };
+                    await db.ProposalMedias.AddAsync(media);
+                    await db.SaveChangesAsync();
+                    var proposalMedia = new ProposalMediaResponseDto
+                    {
+                        Id = media.Id,
+                        ProposalId = file.ProposalId,
+                        Url = fileUrl,
+                        Type = file.File.ContentType
+                    };
+                    return Results.Ok(proposalMedia);
+                }
+                catch (Exception ex) {
+                    Console.WriteLine(ex.Message);
+                }
+                return Results.BadRequest("File upload is failed");
+               
+            }).Produces<ProposalMediaResponseDto>(StatusCodes.Status200OK).WithTags("Proposal").WithDescription("Proposal").DisableAntiforgery();
+
         }
 
 

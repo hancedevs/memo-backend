@@ -16,7 +16,7 @@ public static class WeddingEndpoints
         app.MapGet("/api/weddings", async (MemoDbContext db, HttpContext context) =>
         {
 
-            var weddings = await db.Weddings.Where(x=>x.IsActive==true&&x.IsDeleted==true)
+            var weddings = await db.Weddings.Where(x=>x.IsActive==true&&x.IsDeleted==false)
                 .ToListAsync();
             var stories = new List<WeddingResponseDto>();
             var planners = weddings.Any() ?
@@ -138,13 +138,13 @@ public static class WeddingEndpoints
                Logo = y.Logo,
            }).FirstOrDefaultAsync();
             var coimage = story.Gallery.FirstOrDefault(x => x.IsCoverImage);
-            var gallery = story.Gallery.Any() ? story.Gallery.Where(x => !x.IsCoverImage).Select(g => new MediaFileResponseDto
+            var gallery = story.Gallery.Any() ? story.Gallery.ToList().Select(g => new MediaFileResponseDto
             {
                 Id = g.Id,
                 Url = g.Url,
                 Type = g.Type,
                 IsCoverImage = g.IsCoverImage,
-                WeddingId = g.WeddingId,
+                WeddingId=g.WeddingId
 
             }).ToList() : new List<MediaFileResponseDto>();
             var qrcode = story.QRCode != null ? new WQRCodeResponse
@@ -196,6 +196,7 @@ public static class WeddingEndpoints
            
 
         }).WithName("GetWedding").WithTags("Wedding").WithDescription("This is api to get wedding by id");
+
         app.MapPut("/api/weddings/{id}", async (Guid id, [FromBody] WeddingUpdateDto updatedStory, MemoDbContext db, HttpContext context) =>
         {
             updatedStory.Id = id;
@@ -274,6 +275,7 @@ public static class WeddingEndpoints
         })
                  .WithTags("Wedding").DisableAntiforgery();
 
+       
     }
 
     private static RouteHandlerBuilder WithResponseCache(this RouteHandlerBuilder builder, int duration)
