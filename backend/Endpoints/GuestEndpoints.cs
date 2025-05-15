@@ -12,7 +12,7 @@ namespace backend.Endpoints
         {
            
            
-            app.MapPost("/api/guestmessages", async ([FromBody] GuestMessage message, MemoDbContext db) =>
+            app.MapPost("/api/guestmessage", async ([FromBody] GuestMessage message, MemoDbContext db) =>
             {
                 db.GuestMessages.Add(message);
                 await db.SaveChangesAsync();
@@ -20,7 +20,7 @@ namespace backend.Endpoints
             }).WithName("AddGuestMessage")
             .WithDescription("This is api to add blessings from guests").WithTags("Blessing");
 
-            app.MapGet("/api/guestmessages/{id}", async (Guid id, MemoDbContext db) =>
+            app.MapGet("/api/guestmessage/{id}", async (Guid id, MemoDbContext db) =>
             {
                 var messages = await db.GuestMessages
                     .Where(m => m.WeddingId == id)
@@ -29,7 +29,7 @@ namespace backend.Endpoints
             }).WithName("GetGuestMessages")
              .WithDescription("This is api to get blessings from guests by wedding id").WithTags("Blessing");
 
-            app.MapDelete("/api/guestmessages/{id}", async (Guid id, MemoDbContext db) =>
+            app.MapDelete("/api/guestmessage/{id}", async (Guid id, MemoDbContext db) =>
             {
                 var message = await db.GuestMessages.FindAsync(id);
                 if (message == null) return Results.NotFound();
@@ -38,7 +38,19 @@ namespace backend.Endpoints
                 return Results.NoContent();
             }).WithName("DeleteGuestMessage").WithTags("Blessing").WithDescription("This is api to delete blessing by id");
 
-           
+            app.MapGet("/api/guestMessageByWeddingId/{weddingId}", async (Guid weddingId, MemoDbContext db) =>
+            {
+                var gm= await db.GuestMessages.Where(c=>c.WeddingId==weddingId).ToListAsync();
+
+                var response = (from gue in gm select new GuestResponseDto { 
+                Id = gue.Id,
+                SenderName = gue.SenderName,
+                Message = gue.Message,
+                WeddingId = weddingId,
+                }).ToList();
+
+                return Results.Ok(response);
+            }).WithTags("GuestMessage").Produces<List<GuestResponseDto>>(StatusCodes.Status200OK);
         }
 
     }

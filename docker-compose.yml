@@ -10,7 +10,7 @@ services:
          - ASPNETCORE_ENVIRONMENT=Development
          - DB_HOST=mysql
          - DB_PORT=3306
-         - DB_NAME=memosDB
+         - DB_NAME=memos
          - DB_USER=root
          - DB_PASSWORD=1qazXSW@
          - Frontend_Url=http://memo.plate.et
@@ -23,7 +23,7 @@ services:
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: 1qazXSW@
-      MYSQL_DATABASE: memosDB
+      MYSQL_DATABASE: memos
       MYSQL_USER: memos
       MYSQL_PASSWORD: p@55w0rd
     volumes:

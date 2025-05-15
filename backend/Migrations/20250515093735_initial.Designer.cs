@@ -11,7 +11,7 @@ using backend;
 namespace backend.Migrations
 {
     [DbContext(typeof(MemoDbContext))]
-    [Migration("20250512184434_initial")]
+    [Migration("20250515093735_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -168,6 +168,12 @@ namespace backend.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Logo")
                         .IsRequired()
@@ -343,6 +349,15 @@ namespace backend.Migrations
                     b.Property<string>("GroomVows")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<Guid>("PlannerId")
                         .HasColumnType("char(36)");

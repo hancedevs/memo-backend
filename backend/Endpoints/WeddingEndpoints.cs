@@ -155,6 +155,39 @@ public static class WeddingEndpoints
                 Scans = story.QRCode.Scans,
                 WeddingId = story.QRCode.WeddingId,
             } : new WQRCodeResponse();
+           
+            var howmet = story.HowWeMetStories != null ? new HowWeMetResponseDto
+            {
+                Id = story.HowWeMetStories.Id,
+                Story = story.HowWeMetStories.Story,
+                Date = story.HowWeMetStories.Date,
+                Location = story.HowWeMetStories.Location,
+                WeddingStoryId = story.Id,
+                Media = db.HowWeMetMedias.Where(c => c.HowWeMetId == story.HowWeMetStories.Id).Select(x => new HowWeMetMediaResponseDto
+                {
+                    Id = x.Id,
+                    Url = x.Url,
+                    Type = x.Type,
+                    HowWeMetId = story.HowWeMetStories.Id
+                }).ToList()
+            } : null;
+
+            var proposal = story.Proposals != null ? new ProposalResponseDto
+            {
+                Id = story.Proposals.Id,
+                Story = story.Proposals.Story,
+                Date = story.Proposals.Date,
+                Location = story.Proposals.Location,
+                WeddingStoryId = story.Id,
+                Media = db.ProposalMedias.Where(c => c.ProposalId == story.Proposals.Id).Select(x => new ProposalMediaResponseDto
+                {
+                    Id = x.Id,
+                    Url = x.Url,
+                    Type = x.Type,
+                    ProposalId = story.Proposals.Id
+                }).ToList()
+            } : null;
+
             var response = new WeddingResponseDto
             {
                 Id = story.Id,
@@ -162,27 +195,13 @@ public static class WeddingEndpoints
                 GroomName = story.GroomName,
                 BrideVows = story.BrideVows,
                 GroomVows = story.GroomVows,
-                Proposal = story.Proposals != null ? new ProposalResponseDto
-                {
-                    Id = story.Proposals.Id,
-                    Story = story.Proposals.Story,
-                    Date = story.Proposals.Date,
-                    Location = story.Proposals.Location,
-                    WeddingStoryId=story.Id
-                } : null,
+                Proposal = proposal,
                 ThankYouMessage = story.ThankYouMessage,
                 Gallery = gallery,
                 QrCode = qrcode,
-                CoverImage = story.CoverImage,
+                CoverImage = coimage !=null?coimage.Url:"",
                 GuestMessages = story.GuestMessages,
-                HowWeMet = story.HowWeMetStories != null ? new HowWeMetResponseDto
-                {
-                    Id = story.HowWeMetStories.Id,
-                    Story = story.HowWeMetStories.Story,
-                    Date = story.HowWeMetStories.Date,
-                    Location = story.HowWeMetStories.Location,
-                    WeddingStoryId = story.Id
-                } : null,
+                HowWeMet = howmet,
                 OurJourneys = story.OurJourneys,
                 ThemePreference = story.ThemePreference,
                 TemplateChoice = story.TemplateChoice,

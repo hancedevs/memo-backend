@@ -22,7 +22,9 @@ namespace backend.Migrations
                     Name = table.Column<string>(type: "longtext", nullable: false),
                     Email = table.Column<string>(type: "longtext", nullable: false),
                     Phone = table.Column<string>(type: "longtext", nullable: false),
-                    Logo = table.Column<string>(type: "longtext", nullable: false)
+                    Logo = table.Column<string>(type: "longtext", nullable: false),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -62,7 +64,10 @@ namespace backend.Migrations
                     WeddingDate = table.Column<string>(type: "longtext", nullable: false),
                     WeddingLocation = table.Column<string>(type: "longtext", nullable: false),
                     CoverImage = table.Column<string>(type: "longtext", nullable: true),
-                    PlannerId = table.Column<Guid>(type: "char(36)", nullable: false)
+                    PlannerId = table.Column<Guid>(type: "char(36)", nullable: false),
+                    IsPublic = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
