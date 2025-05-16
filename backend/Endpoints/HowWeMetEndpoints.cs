@@ -68,22 +68,23 @@ namespace backend.Endpoints
                 {
                     foreach (var media in howwemetMedia)
                     {
-                        var uploadsDir = Path.Combine(env.WebRootPath, "howwemet");
+                        var uploadsDir = Path.Combine(env.ContentRootPath, "howwemet");
                         if (!Directory.Exists(uploadsDir))
                         {
                             Directory.CreateDirectory(uploadsDir);
                         }
-                        string filePath = Path.Combine(env.WebRootPath, media.Url);
+                        string filePath = Path.Combine(env.ContentRootPath, media.Url);
                         if (File.Exists(filePath))
                         {
                             File.Delete(filePath);
+                            context.HowWeMetMedias.Remove(media);
                             Console.WriteLine($"File {filePath} deleted successfully.");
                         }
                         else
                         {
                             Console.WriteLine($"File {filePath} does not exist.");
                         }
-                        context.HowWeMetMedias.Remove(media);
+                        
                     }
                 }
                 var result=context.HowWeMetStories.Remove(howwemet);
@@ -127,8 +128,9 @@ namespace backend.Endpoints
                 try
                 {
                     var media = await db.HowWeMetMedias.SingleOrDefaultAsync(x => x.Id == howWemetMeidaId);
-                    
-                    string filePath = Path.Combine(env.WebRootPath, media.Url);
+                    var storageRoot = Path.Combine(env.ContentRootPath, "storage");
+
+                    var filePath = Path.Combine(storageRoot, media.Url);
                     if (File.Exists(filePath))
                     {
                         File.Delete(filePath);
@@ -142,8 +144,6 @@ namespace backend.Endpoints
                     {
                         Console.WriteLine($"File {filePath} does not exist.");
                     }
-                    db.HowWeMetMedias.Remove(media);
-                    await db.SaveChangesAsync();
                     return Results.Ok(success);
                 }
                 catch (Exception)
@@ -160,8 +160,12 @@ namespace backend.Endpoints
                     return Results.BadRequest("File too large.");
                 try
                 {
-                    var howWeMetGallery = $"howwemet/{file.HowWeMetId}";
-                    var uploadsDir = Path.Combine(env.WebRootPath, howWeMetGallery);
+                    var howwemet = await db.HowWeMetStories.SingleOrDefaultAsync(x => x.Id == file.HowWeMetId);
+                    if (howwemet == null)
+                        return Results.NotFound("HowWeMet not found.");
+                    var storageRoot = Path.Combine(env.ContentRootPath, "storage");
+                    var howWeMetGallery = $"{howwemet.WeddingStoryId}/howwemet";
+                    var uploadsDir = Path.Combine(storageRoot, howWeMetGallery);
                     if (!Directory.Exists(uploadsDir))
                     {
                         Directory.CreateDirectory(uploadsDir);

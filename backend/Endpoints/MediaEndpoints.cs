@@ -17,8 +17,10 @@ namespace backend.Endpoints
             {
                 if (file.File.Length > 1 * 1024 * 1024) // 50MB limit
                     return Results.BadRequest("File too large.");
-                var gallery = $"gallery/{file.WeddingId}";
-                var uploadsDir = Path.Combine(env.WebRootPath, gallery);
+                var gallery = $"{file.WeddingId}/gallery";
+                var storageRoot = Path.Combine(env.ContentRootPath, "storage");
+                var uploadsDir = Path.Combine(storageRoot, gallery);
+
                 if (!Directory.Exists(uploadsDir))
                 {
                     Directory.CreateDirectory(uploadsDir);
@@ -82,22 +84,30 @@ namespace backend.Endpoints
                 try
                 {
                     var media = await db.Media.SingleOrDefaultAsync(x => x.Id == mediaId);
-                    var uploadsDir = Path.Combine(env.WebRootPath, media.Url);
+
+                    var storageRoot = Path.Combine(env.ContentRootPath, "storage");
                     
                        
-                        string filePath = Path.Combine(env.WebRootPath, media.Url);
-                        if (File.Exists(filePath))
-                        {
-                            File.Delete(filePath);
+                        string filePath = Path.Combine(storageRoot, media.Url);
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                        // If the file is deleted successfully, set success to true
+                        db.Media.Remove(media);
+                        var x = await db.SaveChangesAsync();
+                        if (x!=0){
                             success = true;
+                            Console.WriteLine($"File {filePath} not deleted successfully.");
+                        }
+
+                        success = true;
                             Console.WriteLine($"File {filePath} deleted successfully.");
                         }
                         else
                         {
                             Console.WriteLine($"File {filePath} does not exist.");
                         }
-                        db.Media.Remove(media);
-                        await db.SaveChangesAsync();
+                       
                     
                     
                     return Results.Ok(success);

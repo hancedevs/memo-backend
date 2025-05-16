@@ -21,8 +21,8 @@ public static class PlannerEndpoints
                     Phone = dto.Phone
                 };
                 if (dto.Logo.Length > 0)
-                {
-                    var logodirc = Path.Combine(env.WebRootPath, "logo");
+                {   var storageRoot = Path.Combine(env.ContentRootPath, "storage");
+                    var logodirc = Path.Combine(storageRoot, "logo");
                     if (!Directory.Exists(logodirc))
                     {
                         Directory.CreateDirectory(logodirc);
@@ -37,7 +37,15 @@ public static class PlannerEndpoints
                     planner.Logo = fileUrl;
                 }
                 var plannerId = await db.Planners.AddAsync(planner);
-                await db.SaveChangesAsync();
+               var x= await db.SaveChangesAsync();
+                if (x == 0)
+                {
+                    if(File.Exists(planner.Logo))
+                    {
+                        File.Delete(planner.Logo);
+                    }
+                    return Results.BadRequest("Failed to create planner.");
+                }
                 return Results.Ok(planner);
             }
             catch (InvalidOperationException ex)
@@ -72,12 +80,12 @@ public static class PlannerEndpoints
             planner.Email = dto.Email;
             if (dto.Logo.Length > 0)
             {
-                var logodirc = Path.Combine(env.WebRootPath, "logo");
+                var logodirc = Path.Combine(env.ContentRootPath, "logo");
                 if (Directory.Exists(logodirc))
                 {
                     Directory.CreateDirectory(logodirc);
                 }
-                string filePath = Path.Combine(env.WebRootPath, planner.Logo);
+                string filePath = Path.Combine(env.ContentRootPath, planner.Logo);
                 if (File.Exists(filePath))
                 {
                     File.Delete(filePath);

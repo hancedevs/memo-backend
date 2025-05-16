@@ -478,6 +478,16 @@ $RECYCLE.BIN/
 *.msp
 
 # Windows shortcuts
+# Windows shortcuts  
+*.lnk  
+
+# Vim temporary swap files  
+*.swp  
+
+# Ignored folders  
+obj/  
+wwwroot/  
+memo-files/
 *.lnk
 
 # Vim temporary swap files
@@ -485,3 +495,4 @@ $RECYCLE.BIN/
 
 obj/
 wwwroot/
+memo-files/

@@ -8,6 +8,7 @@ using backend.Services;
 using backend;
 using Microsoft.OpenApi.Models;
 using backend.Configs;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 Console.WriteLine("Starting application...");
@@ -87,7 +88,11 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "storage")),
+    RequestPath = "/files"
+});
 app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 app.MapAuthEndpoints();

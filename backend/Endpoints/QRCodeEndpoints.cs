@@ -17,6 +17,10 @@ namespace backend.Endpoints
         {
             app.MapGet("/api/qrcodes/generate", async (Guid weddingId, MemoDbContext db, IWebHostEnvironment env) =>
             {
+                var existingQrCode = await db.QRCodes.FirstOrDefaultAsync(q => q.WeddingId == weddingId);
+                if (existingQrCode != null) return Results.Ok(new { url = existingQrCode.Url, assetUrl = existingQrCode.AssetUrl });
+
+                var storageRoot = Path.Combine(env.ContentRootPath, "storage");
                 var domain = Environment.GetEnvironmentVariable("Frontend_Url") ?? "http://memo.plate.et";
                 var story = await db.Weddings.Where(w => w.Id == weddingId).FirstOrDefaultAsync();
                 if (story == null) return Results.NotFound();
@@ -31,7 +35,8 @@ namespace backend.Endpoints
                 using var bitmap = qrCode.GetGraphic(20); // Default: black on white, 20 pixels per module  
 
                 // Ensure the media directory exists  
-                var mediaPath = Path.Combine(env.WebRootPath, "qrcodes");
+                var qrcodeFolderPath=$"{weddingId}/qrcodes";
+                var mediaPath = Path.Combine(storageRoot, qrcodeFolderPath);
                 if (!Directory.Exists(mediaPath))
                 {
                     Directory.CreateDirectory(mediaPath); // Create if it doesn’t exist  

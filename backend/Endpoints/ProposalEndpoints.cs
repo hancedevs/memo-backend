@@ -66,12 +66,12 @@ namespace backend.Endpoints
                 {
                     foreach (var media in ProposalMedia)
                     {
-                        var uploadsDir = Path.Combine(env.WebRootPath, "proposal");
+                        var uploadsDir = Path.Combine(env.ContentRootPath, "proposal");
                         if (!Directory.Exists(uploadsDir))
                         {
                             Directory.CreateDirectory(uploadsDir);
                         }
-                        string filePath = Path.Combine(env.WebRootPath, media.Url);
+                        string filePath = Path.Combine(env.ContentRootPath, media.Url);
                         if (File.Exists(filePath))
                         {
                             File.Delete(filePath);
@@ -119,20 +119,28 @@ namespace backend.Endpoints
 
             app.MapDelete("/api/proposal/delete-media/{proposalMeidaId}", async (Guid proposalMeidaId, MemoDbContext db, IWebHostEnvironment env) =>
             {
-                var media = await db.ProposalMedias.SingleOrDefaultAsync(x => x.Id == proposalMeidaId);
-                  
-                string filePath = Path.Combine(env.WebRootPath, media.Url);
-                if (File.Exists(filePath))
+                try
                 {
-                    File.Delete(filePath);
-                    Console.WriteLine($"File {filePath} deleted successfully.");
-                    db.ProposalMedias.Remove(media);
-                    await db.SaveChangesAsync();
+                    var media = await db.ProposalMedias.SingleOrDefaultAsync(x => x.Id == proposalMeidaId);
+                    var storageRoot = Path.Combine(env.ContentRootPath, "storage");
+                    string filePath = Path.Combine(storageRoot, media.Url);
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                        Console.WriteLine($"File {filePath} deleted successfully.");
+                        db.ProposalMedias.Remove(media);
+                        await db.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"File {filePath} does not exist.");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Console.WriteLine($"File {filePath} does not exist.");
+                    Console.WriteLine(ex.Message);
                 }
+                
 
             }).WithTags("Proposal").WithDescription("This api is to remove image from How Met image list");
             app.MapPost("/api/proposal/fileUpload", async ([FromForm] ProposalMediaDto file, MemoDbContext db, IWebHostEnvironment env) =>
@@ -141,9 +149,12 @@ namespace backend.Endpoints
                     return Results.BadRequest("File too large.");
                 try
                 {
-
-                    var proposalGallery = $"proposal/{file.ProposalId}";
-                    var uploadsDir = Path.Combine(env.WebRootPath, proposalGallery);
+                    var proposal = await db.Proposals.SingleOrDefaultAsync(x => x.Id == file.ProposalId);
+                    if (proposal == null)
+                        return Results.NotFound("Proposal not found.");
+                    var storageRoot = Path.Combine(env.ContentRootPath, "storage");
+                    var proposalGallery = $"{proposal.WeddingStoryId}/proposal";
+                    var uploadsDir = Path.Combine(storageRoot, proposalGallery);
                     if (!Directory.Exists(uploadsDir))
                     {
                         Directory.CreateDirectory(uploadsDir);

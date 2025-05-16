@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ${DOCKER_REGISTRY-}backend
+    image: backend
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -15,7 +15,8 @@ services:
          - DB_PASSWORD=1qazXSW@
          - Frontend_Url=http://memo.plate.et
     volumes:
-         - ./media:/app/wwwroot/qrcode
+          # Persist uploaded files outside the container
+      - ./memo-files:/app/storage
     depends_on:
          - mysql
   mysql:

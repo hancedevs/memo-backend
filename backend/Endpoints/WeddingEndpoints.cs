@@ -283,7 +283,7 @@ public static class WeddingEndpoints
             var existingCoverImage = await db.Weddings.FirstOrDefaultAsync(m => m.Id == file.WeddingId);
             if(existingCoverImage == null)
                 return Results.NotFound("Wedding not found.");
-            var uploadsDir = Path.Combine(env.WebRootPath, "media");
+            var uploadsDir = Path.Combine(env.ContentRootPath, "media");
             Directory.CreateDirectory(uploadsDir);
             var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.File.FileName)}";
             var filePath = Path.Combine(uploadsDir, fileName);

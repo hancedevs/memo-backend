@@ -11,7 +11,7 @@ namespace backend.Services
 
     public FileStorageService(IWebHostEnvironment env)
     {
-        _storagePath = Path.Combine(env.WebRootPath, "media");
+        _storagePath = Path.Combine(env.ContentRootPath, "media");
         if (!Directory.Exists(_storagePath))
             Directory.CreateDirectory(_storagePath);
     }
