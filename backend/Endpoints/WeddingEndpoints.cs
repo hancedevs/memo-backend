@@ -65,7 +65,6 @@ public static class WeddingEndpoints
                     //Gallery = gallery,
                     QrCode = qrcode,
                     CoverImage = story.CoverImage,
-                    GuestMessages = story.GuestMessages,
                     HowWeMet = story.HowWeMetStories!=null?new HowWeMetResponseDto
                     {
                         Id = story.HowWeMetStories.Id,
@@ -187,7 +186,14 @@ public static class WeddingEndpoints
                     ProposalId = story.Proposals.Id
                 }).ToList()
             } : null;
-
+            var guestMessage = db.GuestMessages.Where(c => c.WeddingId == story.Id).Select(x => new GuestMessageResponseDto
+            {
+                Id = x.Id,
+                Message = x.Message,
+                SenderName = x.SenderName,
+                RelationToCouple = x.RelationToCouple,
+                WeddingId = story.Id
+            }).ToList();
             var response = new WeddingResponseDto
             {
                 Id = story.Id,
@@ -200,7 +206,7 @@ public static class WeddingEndpoints
                 Gallery = gallery,
                 QrCode = qrcode,
                 CoverImage = coimage !=null?coimage.Url:"",
-                GuestMessages = story.GuestMessages,
+                GuestMessages = guestMessage,
                 HowWeMet = howmet,
                 OurJourneys = story.OurJourneys,
                 ThemePreference = story.ThemePreference,

@@ -46,7 +46,7 @@ namespace backend.Dto
         public WQRCodeResponse QrCode { get; set; } = new WQRCodeResponse();
 
         
-        public List<GuestMessage> GuestMessages { get; set; } = new List<GuestMessage>();
+        public List<GuestMessageResponseDto> GuestMessages { get; set; } = new List<GuestMessageResponseDto>();
         public ProposalResponseDto Proposal { get; set; } = new ProposalResponseDto(); // One-to-one with Proposal
         public HowWeMetResponseDto HowWeMet { get; set; } = new HowWeMetResponseDto(); // One-to-many with HowWeMet
         public PlannerResponseDto Planner { get; set; } = new PlannerResponseDto(); // Navigation property to Planner
@@ -60,6 +60,14 @@ namespace backend.Dto
         public string AssetUrl { get; set; }
 
         public int Scans { get; set; }
+    }
+    public class GuestMessageResponseDto
+    {
+        public Guid Id { get; set; }
+        public Guid WeddingId { get; set; }
+        public string Message { get; set; }
+        public string SenderName { get; set; }
+        public string RelationToCouple { get; set; }
     }
     public class WeddingUpdateDto
     {
